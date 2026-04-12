@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crestiora Books — Sudoku</title>
+
+  <!-- Fonts: Montserrat for headings/labels/nav, Open Sans for body text -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ══════════════════════════════════════════════
+       RESET & ROOT VARIABLES
+    ══════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #060E17;   /* Deep dark background */
+      --navy:    #0D1B2A;   /* Section alt background */
+      --cyan:    #00C4F0;   /* Primary accent */
+      --purple:  #7B3FDB;   /* Secondary accent */
+      --white:   #FFFFFF;
+      --muted:   rgba(255,255,255,0.55);
+      --yellow:  #FFD600;   /* Easy difficulty */
+      --blue:    #2196F3;   /* Medium difficulty */
+      --red:     #E53935;   /* Hard difficulty */
+      --card-bg: rgba(255,255,255,0.04);
+      --card-bd: rgba(255,255,255,0.10);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Open Sans', sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ══════════════════════════════════════════════
+       TYPOGRAPHY
+    ══════════════════════════════════════════════ */
+    h1, h2, h3 { font-family: 'Montserrat', sans-serif; }
+
+    /* Small uppercase label above headings */
+    .eyebrow {
+      display: block;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--cyan);
+    }
+
+    .sec-title {
+      font-size: clamp(1.65rem, 3vw, 2.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+    }
+
+    .sec-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-top: 8px;
+    }
+
+    /* ══════════════════════════════════════════════
+       LAYOUT
+    ══════════════════════════════════════════════ */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+
+    section { padding: 80px 0; }
+
+    /* Section header block — centered above content */
+    .section-header { text-align: center; margin-bottom: 48px; }
+
+    /* ══════════════════════════════════════════════
+       BUTTONS
+       Premium hover: glow shadow + slight scale lift + brightness
+    ══════════════════════════════════════════════ */
+    .btn-primary,
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 32px;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    /* Solid cyan fill button */
+    .btn-primary {
+      background: var(--cyan);
+      color: #000;
+      border: 2px solid var(--cyan);
+    }
+    .btn-primary:hover {
+      background: #1ad4ff;
+      box-shadow: 0 0 28px rgba(0,196,240,0.55);
+      transform: translateY(-2px) scale(1.03);
+    }
+    .btn-primary:active { transform: translateY(0) scale(0.99); }
+
+    /* Outline cyan button */
+    .btn-outline {
+      background: transparent;
+      color: var(--cyan);
+      border: 2px solid var(--cyan);
+    }
+    .btn-outline:hover {
+      background: rgba(0,196,240,0.1);
+      box-shadow: 0 0 20px rgba(0,196,240,0.3);
+      transform: translateY(-2px);
+    }
+
+    /* ══════════════════════════════════════════════
+       HERO SECTION
+       Full viewport height with orbs, a decorative
+       sudoku grid (right side), and the main CTA.
+    ══════════════════════════════════════════════ */
+    .hero {
+      padding: 100px 0 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse 60% 55% at 68% 25%, rgba(123,63,219,0.18) 0%, transparent 100%),
+        radial-gradient(ellipse 50% 50% at 18% 80%, rgba(0,196,240,0.12) 0%, transparent 100%),
+        var(--bg);
+    }
+
+    /* Animated blur orbs for visual depth */
+    .hero-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+    }
+    .orb1 {
+      width: 500px; height: 500px;
+      background: rgba(123,63,219,0.14);
+      top: -130px; right: -130px;
+      animation: float1 9s ease-in-out infinite;
+    }
+    .orb2 {
+      width: 380px; height: 380px;
+      background: rgba(0,196,240,0.09);
+      bottom: -90px; left: -90px;
+      animation: float2 11s ease-in-out infinite;
+    }
+
+    @keyframes float1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(28px,38px)} }
+    @keyframes float2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-20px,-28px)} }
+
+    /* Decorative sudoku grid — right side, very faint */
+    .hero-grid-svg {
+      position: absolute;
+      right: 2%;
+      top: 50%;
+      transform: translateY(-50%) rotate(-8deg);
+      opacity: 0.07;
+      pointer-events: none;
+      width: min(420px, 38vw);
+    }
+
+    /* Main hero content block */
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      padding: 0 24px;
+    }
+
+    .hero-content .eyebrow { margin-bottom: 20px; }
+
+    /* Large gradient heading */
+    .hero-h1 {
+      font-size: clamp(2.8rem, 7vw, 5rem);
+      font-weight: 900;
+      line-height: 1.06;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #fff 52%, rgba(0,196,240,0.85));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.15rem;
+      color: var(--muted);
+      margin-bottom: 40px;
+    }
+
+    .hero-ctas {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ══════════════════════════════════════════════
+       WHY PLAY HERE — 2×2 FEATURE CARDS
+    ══════════════════════════════════════════════ */
+    .why-section { background: var(--navy); }
+
+    /* 2-column grid for the 4 feature cards */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    /* Glass-morphism card */
+    .feat-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-bd);
+      border-radius: 16px;
+      padding: 28px;
+      backdrop-filter: blur(20px);
+      transition: border-color 0.25s, background 0.25s, transform 0.25s;
+    }
+    .feat-card:hover {
+      border-color: rgba(0,196,240,0.3);
+      background: rgba(0,196,240,0.05);
+      transform: translateY(-4px);
+    }
+
+    .feat-icon { font-size: 2rem; display: block; margin-bottom: 12px; }
+    .feat-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .feat-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+
+    /* ══════════════════════════════════════════════
+       CHOOSE YOUR LEVEL — 3 CLICKABLE CARDS
+       Color-coded borders matching Amazon KDP books.
+    ══════════════════════════════════════════════ */
+    .levels-section { text-align: center; }
+
+    .levels-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .level-card {
+      display: block;
+      border-radius: 16px;
+      padding: 32px 24px;
+      border: 2px solid;
+      text-decoration: none;
+      color: var(--white);
+      background: var(--card-bg);
+      transition: transform 0.25s, box-shadow 0.25s, background 0.25s;
+    }
+
+    /* Color borders per difficulty */
+    .level-card.easy   { border-color: var(--yellow); }
+    .level-card.medium { border-color: var(--blue);   }
+    .level-card.hard   { border-color: var(--red);    }
+
+    .level-card:hover { transform: translateY(-5px) scale(1.02); }
+
+    /* Hover: color-matched glow */
+    .level-card.easy:hover   { box-shadow: 0 8px 32px rgba(255,214,0,0.35);  background: rgba(255,214,0,0.06); }
+    .level-card.medium:hover { box-shadow: 0 8px 32px rgba(33,150,243,0.35); background: rgba(33,150,243,0.06); }
+    .level-card.hard:hover   { box-shadow: 0 8px 32px rgba(229,57,53,0.35);  background: rgba(229,57,53,0.06); }
+
+    .level-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 10px;
+    }
+    .level-card.easy   .level-label { color: var(--yellow); }
+    .level-card.medium .level-label { color: var(--blue);   }
+    .level-card.hard   .level-label { color: var(--red);    }
+
+    .level-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.55; }
+
+    .level-clues {
+      margin-top: 14px;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.3);
+      font-style: italic;
+    }
+
+    /* ══════════════════════════════════════════════
+       SUDOKU & THE BRAIN
+    ══════════════════════════════════════════════ */
+    .brain-section { background: var(--navy); }
+
+    .brain-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .brain-inner .eyebrow { margin-bottom: 16px; }
+    .brain-inner .sec-title { margin-bottom: 24px; }
+
+    .brain-text {
+      font-size: 1.05rem;
+      color: var(--muted);
+      line-height: 1.85;
+    }
+
+    /* Pull quote with cyan left border */
+    .brain-quote {
+      margin-top: 32px;
+      padding: 20px 26px;
+      border-left: 3px solid var(--cyan);
+      text-align: left;
+      background: rgba(0,196,240,0.05);
+      border-radius: 0 10px 10px 0;
+      font-style: italic;
+      color: rgba(255,255,255,0.72);
+      line-height: 1.72;
+      font-size: 0.97rem;
+    }
+
+    /* ══════════════════════════════════════════════
+       CRESTIORA BOOKS BRAND SECTION
+       Subtle cyan tint with border-top.
+    ══════════════════════════════════════════════ */
+    .brand-section {
+      background: rgba(0,196,240,0.05);
+      border-top: 1px solid rgba(0,196,240,0.2);
+      text-align: center;
+    }
+
+    .brand-inner .eyebrow { margin-bottom: 16px; }
+    .brand-inner .sec-title { margin-bottom: 12px; }
+
+    .brand-sub {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-bottom: 32px;
+      max-width: 540px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+    }
+
+    /* ══════════════════════════════════════════════
+       FOOTER
+    ══════════════════════════════════════════════ */
+    footer {
+      background: var(--navy);
+      text-align: center;
+      padding: 28px 24px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.82rem;
+      letter-spacing: 0.05em;
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* ══════════════════════════════════════════════
+       SCROLL FADE-IN ANIMATION
+       Elements start invisible, slide up + fade in
+       when they enter the viewport.
+    ══════════════════════════════════════════════ */
+    .fade-in {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Stagger delay for grid children */
+    .features-grid .fade-in:nth-child(2) { transition-delay: 0.08s; }
+    .features-grid .fade-in:nth-child(3) { transition-delay: 0.16s; }
+    .features-grid .fade-in:nth-child(4) { transition-delay: 0.24s; }
+
+    .levels-grid .fade-in:nth-child(2) { transition-delay: 0.1s; }
+    .levels-grid .fade-in:nth-child(3) { transition-delay: 0.2s; }
+
+    /* ══════════════════════════════════════════════
+       MOBILE RESPONSIVE
+    ══════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      section { padding: 60px 0; }
+
+      /* Reduce hero padding on tablet */
+      .hero { padding: 72px 0 60px; }
+
+      /* Stack feature cards single column */
+      .features-grid { grid-template-columns: 1fr; }
+
+      /* Stack level cards single column */
+      .levels-grid { grid-template-columns: 1fr; gap: 14px; }
+
+      /* Hide the decorative grid on small screens */
+      .hero-grid-svg { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      /* Compact hero on phone */
+      .hero { padding: 56px 0 48px; }
+      .hero-h1 { font-size: clamp(2.2rem, 9vw, 3.2rem); }
+      .hero-sub { font-size: 1rem; margin-bottom: 28px; }
+
+      /* Stack hero CTAs vertically */
+      .hero-ctas { flex-direction: column; align-items: center; }
+
+      /* Smaller section headers */
+      .sec-title { font-size: clamp(1.4rem, 5vw, 1.8rem); }
+
+      /* Buttons: slightly smaller on phone */
+      .btn-primary, .btn-outline { padding: 12px 24px; font-size: 0.88rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════════════════
+       HERO SECTION
+       Full-viewport landing with decorative sudoku grid,
+       animated orbs, headline, and two CTA buttons.
+  ════════════════════════════════════════════════════ -->
+  <section class="hero">
+
+    <!-- Animated floating orbs -->
+    <div class="hero-orb orb1"></div>
+    <div class="hero-orb orb2"></div>
+
+    <!-- Decorative sudoku grid (right side, 7% opacity) -->
+    <svg class="hero-grid-svg" viewBox="0 0 360 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Alternating box fills -->
+      <rect x="0"   y="0"   width="120" height="120" fill="#fff"/>
+      <rect x="120" y="0"   width="120" height="120" fill="#e8f4fd"/>
+      <rect x="240" y="0"   width="120" height="120" fill="#fff"/>
+      <rect x="0"   y="120" width="120" height="120" fill="#e8f4fd"/>
+      <rect x="120" y="120" width="120" height="120" fill="#fff"/>
+      <rect x="240" y="120" width="120" height="120" fill="#e8f4fd"/>
+      <rect x="0"   y="240" width="120" height="120" fill="#fff"/>
+      <rect x="120" y="240" width="120" height="120" fill="#e8f4fd"/>
+      <rect x="240" y="240" width="120" height="120" fill="#fff"/>
+      <!-- Thin cell lines -->
+      <g stroke="#999" stroke-width="0.5">
+        <line x1="40"  y1="0" x2="40"  y2="360"/>
+        <line x1="80"  y1="0" x2="80"  y2="360"/>
+        <line x1="160" y1="0" x2="160" y2="360"/>
+        <line x1="200" y1="0" x2="200" y2="360"/>
+        <line x1="280" y1="0" x2="280" y2="360"/>
+        <line x1="320" y1="0" x2="320" y2="360"/>
+        <line x1="0" y1="40"  x2="360" y2="40"/>
+        <line x1="0" y1="80"  x2="360" y2="80"/>
+        <line x1="0" y1="160" x2="360" y2="160"/>
+        <line x1="0" y1="200" x2="360" y2="200"/>
+        <line x1="0" y1="280" x2="360" y2="280"/>
+        <line x1="0" y1="320" x2="360" y2="320"/>
+      </g>
+      <!-- Thick box borders -->
+      <g stroke="#222" stroke-width="2.5" fill="none">
+        <rect x="1"   y="1"   width="118" height="118"/>
+        <rect x="121" y="1"   width="118" height="118"/>
+        <rect x="241" y="1"   width="118" height="118"/>
+        <rect x="1"   y="121" width="118" height="118"/>
+        <rect x="121" y="121" width="118" height="118"/>
+        <rect x="241" y="121" width="118" height="118"/>
+        <rect x="1"   y="241" width="118" height="118"/>
+        <rect x="121" y="241" width="118" height="118"/>
+        <rect x="241" y="241" width="118" height="118"/>
+      </g>
+      <!-- Sample sudoku numbers -->
+      <g font-family="Montserrat,sans-serif" font-weight="700" font-size="22" text-anchor="middle" fill="#333">
+        <text x="20"  y="30">5</text>
+        <text x="100" y="30">3</text>
+        <text x="140" y="30">7</text>
+        <text x="60"  y="70">6</text>
+        <text x="220" y="70">1</text>
+        <text x="280" y="70">9</text>
+        <text x="20"  y="110">8</text>
+        <text x="180" y="110">6</text>
+        <text x="260" y="110">5</text>
+        <text x="60"  y="150">8</text>
+        <text x="100" y="150">5</text>
+        <text x="340" y="150">3</text>
+        <text x="180" y="190">4</text>
+        <text x="220" y="190">7</text>
+        <text x="20"  y="230">6</text>
+        <text x="140" y="230">3</text>
+        <text x="300" y="230">2</text>
+        <text x="100" y="270">4</text>
+        <text x="300" y="270">8</text>
+        <text x="60"  y="310">1</text>
+        <text x="180" y="310">8</text>
+        <text x="340" y="310">5</text>
+      </g>
+    </svg>
+
+    <!-- Hero content -->
+    <div class="hero-content">
+      <span class="eyebrow">Crestiora Books</span>
+      <h1 class="hero-h1">Train Your Brain<br>with Sudoku</h1>
+      <p class="hero-sub">Three difficulty levels. Pure logic. No ads.</p>
+      <div class="hero-ctas">
+        <a href="play.html" class="btn-primary">▶&nbsp; Play Now</a>
+        <a href="play.html?tab=strategies" class="btn-outline">📖&nbsp; Strategies</a>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════
+       WHY PLAY HERE — 4 FEATURE CARDS (2×2 grid)
+  ════════════════════════════════════════════════════ -->
+  <section class="why-section">
+    <div class="container">
+
+      <div class="section-header fade-in">
+        <h2 class="sec-title">Why Play Here</h2>
+        <p class="sec-sub">Everything you need for a focused, distraction-free puzzle experience</p>
+      </div>
+
+      <div class="features-grid">
+
+        <div class="feat-card fade-in">
+          <span class="feat-icon">⏱</span>
+          <div class="feat-title">Timer &amp; Notes</div>
+          <div class="feat-desc">Track your solve time and use pencil marks to manage candidate numbers — exactly like solving on paper, but without the eraser.</div>
+        </div>
+
+        <div class="feat-card fade-in">
+          <span class="feat-icon">💡</span>
+          <div class="feat-title">3 Hints per Game</div>
+          <div class="feat-desc">Stuck? Use one of your three hints to reveal a correct cell and get back on track, without spoiling the rest of the puzzle.</div>
+        </div>
+
+        <div class="feat-card fade-in">
+          <span class="feat-icon">✓</span>
+          <div class="feat-title">Error Check</div>
+          <div class="feat-desc">Instantly highlight any incorrect entries so you can catch and correct mistakes before they cascade into bigger problems.</div>
+        </div>
+
+        <div class="feat-card fade-in">
+          <span class="feat-icon">↩</span>
+          <div class="feat-title">Undo Moves</div>
+          <div class="feat-desc">Made a wrong entry? Step back through your move history one step at a time — as many times as you need.</div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════
+       CHOOSE YOUR LEVEL — 3 CLICKABLE DIFFICULTY CARDS
+       Clicking goes directly to play.html with that level.
+  ════════════════════════════════════════════════════ -->
+  <section class="levels-section">
+    <div class="container">
+
+      <div class="section-header fade-in">
+        <h2 class="sec-title">Choose Your Level</h2>
+        <p class="sec-sub">Each level is carefully tuned to deliver the right challenge</p>
+      </div>
+
+      <div class="levels-grid">
+
+        <a href="play.html?level=easy" class="level-card easy fade-in">
+          <div class="level-label">Easy</div>
+          <div class="level-desc">More clues, clear patterns. Perfect for building confidence and learning the fundamentals of sudoku logic.</div>
+          <div class="level-clues">~46–50 given digits</div>
+        </a>
+
+        <a href="play.html?level=medium" class="level-card medium fade-in">
+          <div class="level-label">Medium</div>
+          <div class="level-desc">Fewer clues. Requires logical deduction and some forward planning to work through completely.</div>
+          <div class="level-clues">~32–36 given digits</div>
+        </a>
+
+        <a href="play.html?level=hard" class="level-card hard fade-in">
+          <div class="level-label">Hard</div>
+          <div class="level-desc">Minimal clues. Demands advanced techniques and careful candidate analysis from start to finish.</div>
+          <div class="level-clues">~25–28 given digits</div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════
+       SUDOKU & THE BRAIN
+  ════════════════════════════════════════════════════ -->
+  <section class="brain-section">
+    <div class="container">
+      <div class="brain-inner fade-in">
+        <span class="eyebrow">Brain Training</span>
+        <h2 class="sec-title">Sudoku &amp; The Brain</h2>
+        <p class="brain-text">Sudoku is one of the world's most popular logic puzzles — and for good reason. It requires no mathematics, no language, and no prior experience. All it takes is patience, observation, and a willingness to think step by step. Regular practice sharpens working memory, trains attention to detail, and builds the kind of systematic thinking that carries over into everyday problem-solving. Every puzzle you complete is a small victory for your brain.</p>
+        <blockquote class="brain-quote">
+          "Every cell you fill is a clue for the next one. Sudoku rewards patience and attention — never luck."
+          <br><br>
+          <span style="font-size:0.85em;color:rgba(255,255,255,0.45);font-style:normal;">— The Complete Sudoku Strategy Guide, Crestiora Books</span>
+        </blockquote>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════
+       CRESTIORA BOOKS — PHYSICAL BOOKS SECTION
+       Johan: replace href="#" with your Amazon store URL.
+  ════════════════════════════════════════════════════ -->
+  <section class="brand-section">
+    <div class="container">
+      <div class="brand-inner fade-in">
+        <span class="eyebrow">Physical Books</span>
+        <h2 class="sec-title">Crestiora Books</h2>
+        <p class="brand-sub">Prefer pencil and paper? Our printed sudoku books are available on Amazon — same three difficulty levels, professionally typeset, and perfect for travel, home, or as a gift.</p>
+        <!-- Replace # with your Amazon store URL when ready -->
+        <a href="https://www.amazon.com/s?k=crestiora+books&i=stripbooks-intl-ship&crid=1VXC4VQ4S0OZQ&sprefix=crestiora+books%2Cstripbooks-intl-ship%2C204&ref=nb_sb_noss_1" class="btn-primary" target="_blank" rel="noopener">View on Amazon</a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ════════════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════════ -->
+  <footer>
+    <p>© 2026 Crestiora Books — All rights reserved</p>
+  </footer>
+
+
+  <!-- ════════════════════════════════════════════════════
+       JAVASCRIPT — Scroll fade-in using IntersectionObserver
+  ════════════════════════════════════════════════════ -->
+  <script>
+    // Observe all .fade-in elements; add .visible when they enter the viewport
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target); // Only animate once
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+  </script>
+
+</body>
+</html>

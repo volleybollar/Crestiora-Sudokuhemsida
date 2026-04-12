@@ -1,0 +1,2788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crestiora Books — Play Sudoku</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & Variables ────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #060E17;
+      --navy:   #0D1B2A;
+      --cyan:   #00C4F0;
+      --purple: #7B3FDB;
+      --white:  #FFFFFF;
+      --muted:  rgba(255,255,255,0.5);
+      --yellow: #FFD600;
+      --blue:   #2196F3;
+      --red:    #E53935;
+
+      /* Board cell size — responsive: fits any screen */
+      --cell: clamp(34px, min(9.5vw, 7.5vh), 52px);
+
+      /* Board total width = 9 cells + 2 thick inner borders (3px each) + outer borders */
+      --board-w: calc(9 * var(--cell) + 6px);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Open Sans', sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* ── Page Tabs (Home | Play | Strategies) ────────── */
+    .tab-bar {
+      display: flex;
+      background: var(--navy);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 99;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 14px 12px;
+      text-align: center;
+      text-decoration: none;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--muted);
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab-btn.active {
+      color: var(--cyan);
+      border-bottom-color: var(--cyan);
+    }
+
+    /* ── Tab Content Panels ─────────────────────────── */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── PLAY TAB ─────────────────────────────────── */
+    /* Use .active variant so the flex display is only applied when visible */
+    #play-tab.active {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 12px 32px;
+    }
+
+    /* Difficulty strip + timer */
+    .diff-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      width: var(--board-w);
+      max-width: 500px;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      background: var(--navy);
+      border-radius: 8px;
+    }
+
+    .diff-btn {
+      padding: 4px 12px;
+      border-radius: 5px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1.5px solid;
+      transition: all 0.18s;
+    }
+    .diff-btn.easy   { border-color: var(--yellow); color: #1a1200; background: var(--yellow); }
+    .diff-btn.medium { border-color: var(--blue);   color: #1a1200; background: var(--blue); }
+    .diff-btn.hard   { border-color: var(--red);    color: #1a1200; background: var(--red); }
+
+    .diff-btn.easy.active   { background: var(--yellow); color: #1a1200; }
+    .diff-btn.medium.active { background: var(--blue);   color: #1a1200; }
+    .diff-btn.hard.active   { background: var(--red);    color: #1a1200; }
+
+    /* Timer — right-aligned */
+    .timer-wrap {
+      margin-left: auto;
+      text-align: right;
+    }
+    .timer-label {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.35);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .timer-value {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--cyan);
+      line-height: 1.25;
+    }
+
+    /* ── How to Play ──────────────────────────────────── */
+    .how-to-play {
+      width: var(--board-w);
+      max-width: 500px;
+      margin-bottom: 14px;
+      padding: 10px 14px;
+      background: rgba(13,27,42,0.5);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 8px;
+    }
+    .how-to-play ol {
+      list-style: none;
+      counter-reset: step;
+      margin: 0;
+      padding: 0;
+    }
+    .how-to-play ol > li {
+      counter-increment: step;
+      font-family: 'Open Sans', sans-serif;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.55;
+      padding-left: 20px;
+      position: relative;
+      margin-bottom: 2px;
+    }
+    .how-to-play ol > li:last-child { margin-bottom: 0; }
+    .how-to-play ol > li::before {
+      content: counter(step) ".";
+      position: absolute;
+      left: 0;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.72rem;
+      color: var(--cyan);
+    }
+    .how-to-play ul li {
+      font-family: 'Open Sans', sans-serif;
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.55;
+    }
+    .how-to-play ul li::before { display: none; }
+
+    /* ── Game Board ─────────────────────────────────── */
+    .board-wrap {
+      border: 3px solid #1a1a2e;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      display: inline-block;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(9, var(--cell));
+      background: #fff;
+    }
+
+    /* Individual cell */
+    .cell {
+      width: var(--cell);
+      height: var(--cell);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      position: relative;
+      background: #fff;
+      border-right: 1px solid #ddd;
+      border-bottom: 1px solid #ddd;
+      transition: background 0.12s;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Thick box boundaries — right border after cols 2 and 5 */
+    .cell[data-c="2"], .cell[data-c="5"] { border-right: 3px solid #1a1a2e; }
+    /* Thick box boundaries — bottom border after rows 2 and 5 */
+    .cell[data-r="2"], .cell[data-r="5"] { border-bottom: 3px solid #1a1a2e; }
+    /* Remove borders on last row/col */
+    .cell[data-c="8"] { border-right: none; }
+    .cell[data-r="8"] { border-bottom: none; }
+
+    /* Given (clue) cells — warm background, bold dark text */
+    .cell.given { background: #fafafa; }
+    .cell.given .val { font-weight: 700; color: #1a1a2e; }
+
+    /* Cell value text */
+    .val {
+      font-family: 'Montserrat', sans-serif;
+      font-size: calc(var(--cell) * 0.44);
+      font-weight: 600;
+      color: var(--cyan);
+      line-height: 1;
+      pointer-events: none;
+    }
+
+    /* Error — red text after Check */
+    .cell.error .val { color: var(--red) !important; }
+
+    /* Hint revealed — distinct cyan shade */
+    .cell.hinted .val { color: #0095b5; }
+
+    /* Selected cell highlight */
+    .cell.selected { background: rgba(0,196,240,0.18) !important; }
+
+    /* Same-number highlight */
+    .cell.same-num:not(.selected) { background: rgba(0,196,240,0.07) !important; }
+
+    /* Notes (pencil marks) grid inside cell */
+    .notes-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      width: 100%;
+      height: 100%;
+      padding: 1px;
+    }
+    .note {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Montserrat', sans-serif;
+      font-size: clamp(6px, calc(var(--cell) * 0.16), 9px);
+      color: #2196F3;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+    /* ── Number Pad ─────────────────────────────────── */
+    .numpad {
+      display: flex;
+      gap: 6px;
+      width: var(--board-w);
+      max-width: 500px;
+      margin: 12px auto 8px;
+    }
+    .num-btn {
+      flex: 1;
+      aspect-ratio: 1;
+      border: 1.5px solid rgba(0,0,0,0.12);
+      background: #fff;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: calc(var(--cell) * 0.38);
+      font-weight: 700;
+      color: #1a1a2e;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      transition: all 0.15s;
+    }
+    .num-btn:hover {
+      border-color: var(--cyan);
+      background: rgba(0,196,240,0.06);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,196,240,0.2);
+    }
+    .num-btn:active { transform: translateY(0); }
+    .num-btn.active-num {
+      border-color: var(--cyan);
+      background: rgba(0,196,240,0.1);
+    }
+
+    /* ── Tool Buttons ─────────────────────────────── */
+    .tools {
+      display: flex;
+      gap: 8px;
+      width: var(--board-w);
+      max-width: 500px;
+      margin: 0 auto 16px;
+    }
+    .tool-btn {
+      flex: 1;
+      padding: 9px 4px 7px;
+      border: 1.5px solid rgba(0,0,0,0.12);
+      background: #fff;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.18s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .tool-icon { font-size: clamp(1rem, 3.5vw, 1.3rem); line-height: 1; }
+    .tool-label {
+      font-family: 'Montserrat', sans-serif;
+      font-size: clamp(0.55rem, 1.8vw, 0.68rem);
+      font-weight: 700;
+      color: #444;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+
+    .tool-btn:hover { transform: translateY(-2px); }
+
+    .tool-btn.undo:hover   { border-color: rgba(0,0,0,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .tool-btn.notes-btn:hover,
+    .tool-btn.notes-btn.active { border-color: var(--cyan); box-shadow: 0 4px 14px rgba(0,196,240,0.25); }
+    .tool-btn.notes-btn.active { background: rgba(0,196,240,0.08); }
+    .tool-btn.check:hover  { border-color: var(--cyan); box-shadow: 0 4px 14px rgba(0,196,240,0.25); }
+    .tool-btn.hint-btn     { position: relative; }
+    .tool-btn.hint-btn:hover { border-color: var(--yellow); box-shadow: 0 4px 14px rgba(255,214,0,0.3); }
+    .tool-btn.hint-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+    .tool-btn.new-btn:hover { border-color: rgba(0,0,0,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+
+    /* Hint remaining counter badge */
+    .hint-count {
+      position: absolute;
+      top: 5px; right: 6px;
+      background: var(--yellow);
+      color: #1a1200;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.6rem;
+      font-weight: 900;
+      border-radius: 99px;
+      padding: 1px 4px;
+      line-height: 1.4;
+    }
+
+    /* ── Win Overlay ──────────────────────────────── */
+    .win-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(6,14,23,0.93);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      animation: fadeOverlay 0.4s ease;
+    }
+    .win-overlay.hidden { display: none; }
+
+    @keyframes fadeOverlay { from { opacity: 0; } to { opacity: 1; } }
+
+    .win-box {
+      background: var(--navy);
+      border: 1px solid rgba(0,196,240,0.3);
+      border-radius: 20px;
+      padding: 40px 36px;
+      text-align: center;
+      max-width: 320px;
+      width: 90%;
+      box-shadow: 0 0 50px rgba(0,196,240,0.15);
+    }
+    .win-emoji { font-size: 3rem; margin-bottom: 14px; }
+    .win-box h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .win-box p { color: var(--muted); margin-bottom: 24px; font-size: 1rem; }
+    .win-box strong { color: var(--cyan); }
+    .btn-win {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: var(--cyan);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-win:hover {
+      background: #1ad4ff;
+      box-shadow: 0 0 24px rgba(0,196,240,0.5);
+      transform: translateY(-2px);
+    }
+
+    /* ── STRATEGIES TAB ──────────────────────────── */
+    #strategies-tab { padding-bottom: 40px; }
+
+    /* Sub-tab bar: Basic | Intermediate | Advanced */
+    .strat-tab-bar {
+      display: flex;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      background: rgba(13,27,42,0.7);
+      position: sticky;
+      top: 50px; /* main tab bar height */
+      z-index: 90;
+      backdrop-filter: blur(10px);
+    }
+    .strat-tab-btn {
+      flex: 1;
+      padding: 12px 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--muted);
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .strat-tab-btn.active-basic        { color: var(--yellow); border-bottom-color: var(--yellow); }
+    .strat-tab-btn.active-intermediate { color: var(--blue);   border-bottom-color: var(--blue);   }
+    .strat-tab-btn.active-advanced     { color: var(--red);    border-bottom-color: var(--red);    }
+
+    /* Strategy content panels */
+    .strat-panel { display: none; padding: 20px 16px; }
+    .strat-panel.active { display: block; }
+
+    /* Individual strategy card */
+    .strat-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 0 12px 12px 0;
+      border-left: 3px solid;
+      padding: 16px 18px 20px;
+      margin-bottom: 16px;
+    }
+    .strat-card.basic        { border-left-color: var(--yellow); }
+    .strat-card.intermediate { border-left-color: var(--blue);   }
+    .strat-card.advanced     { border-left-color: var(--red);    }
+
+    .strat-name {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+    .strat-num {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      opacity: 0.45;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .strat-desc {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 14px;
+    }
+
+    /* SVG illustrations: white bg, rounded */
+    .strat-svg {
+      display: block;
+      margin: 0 auto;
+      border-radius: 8px;
+      background: #fff;
+      max-width: 100%;
+    }
+
+    /* ── Tablet tweaks (iPad etc) ────────────────── */
+    @media (max-width: 768px) {
+      /* Strategies cards: tighter padding */
+      .strat-card { padding: 14px 14px 16px; }
+      .strat-desc { font-size: 0.84rem; }
+    }
+
+    /* ── Small tablet / large phone ──────────────── */
+    @media (max-width: 600px) {
+      /* Instructions: reduce tool name indent on narrow screens */
+      .how-to-play ul li {
+        padding-left: 62px !important;
+        text-indent: -62px !important;
+      }
+      .how-to-play ul li strong {
+        min-width: 62px !important;
+      }
+    }
+
+    /* ── Phone tweaks ────────────────────────────── */
+    @media (max-width: 400px) {
+      .diff-btn { padding: 3px 8px; font-size: 0.7rem; }
+      .tool-label { display: none; }
+      .tool-icon { font-size: 1.2rem; }
+      .tool-btn { padding: 10px 4px; }
+      /* Instructions: stack tool descriptions vertically */
+      .how-to-play { padding: 8px 10px; }
+      .how-to-play ol > li { font-size: 0.73rem; }
+      .how-to-play ul li {
+        padding-left: 0 !important;
+        text-indent: 0 !important;
+        margin-bottom: 4px !important;
+      }
+      .how-to-play ul li strong {
+        display: block !important;
+        min-width: auto !important;
+        margin-bottom: 1px;
+      }
+      /* Strategies: smaller text */
+      .strat-card { padding: 12px 10px 14px; }
+      .strat-name { font-size: 0.88rem; }
+      .strat-desc { font-size: 0.8rem; line-height: 1.55; }
+      /* Ensure minimum touch target for cells */
+      :root { --cell: clamp(34px, 10vw, 52px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════════════
+       MAIN TAB BAR (Home | Play | Strategies)
+  ════════════════════════════════════ -->
+  <div class="tab-bar">
+    <a href="index.html" class="tab-btn">🏠 Home</a>
+    <button class="tab-btn active" id="tab-play-btn"       onclick="showTab('play')">▶ Play</button>
+    <button class="tab-btn"        id="tab-strat-btn"      onclick="showTab('strategies')">📖 Strategies</button>
+  </div>
+
+  <!-- ════════════════════════════════════
+       PLAY TAB
+  ════════════════════════════════════ -->
+  <div id="play-tab" class="tab-panel active">
+
+    <!-- Difficulty selector + timer -->
+    <div class="diff-row">
+      <button class="diff-btn easy   active" id="btn-easy"   onclick="newGame('easy')">Easy</button>
+      <button class="diff-btn medium"        id="btn-medium" onclick="newGame('medium')">Medium</button>
+      <button class="diff-btn hard"          id="btn-hard"   onclick="newGame('hard')">Hard</button>
+      <div class="timer-wrap">
+        <div class="timer-label">Time played</div>
+        <div class="timer-value" id="timer">00:00</div>
+      </div>
+    </div>
+
+    <!-- How to play -->
+    <div class="how-to-play">
+      <div style="font-family:'Montserrat',sans-serif;font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.7);margin-bottom:6px;">Instructions</div>
+      <ol>
+        <li>Choose your difficulty level above.</li>
+        <li>Tap a cell on the board to select it.</li>
+        <li>Insert your number or tap the number on the pad below to place it.</li>
+        <li>Use the tools below:
+          <ul style="list-style:none;padding:0;margin:4px 0 0 0;">
+            <li style="padding-left:72px;text-indent:-72px;margin-bottom:2px;"><strong style="display:inline-block;min-width:72px;text-indent:0;color:rgba(255,255,255,0.7);">↩ Undo</strong> Take back your last move.</li>
+            <li style="padding-left:72px;text-indent:-72px;margin-bottom:2px;"><strong style="display:inline-block;min-width:72px;text-indent:0;color:rgba(255,255,255,0.7);">✏️ Notes</strong> Toggle pencil mark mode to write small candidate numbers.</li>
+            <li style="padding-left:72px;text-indent:-72px;margin-bottom:2px;"><strong style="display:inline-block;min-width:72px;text-indent:0;color:rgba(255,255,255,0.7);">✓ Check</strong> Highlight any incorrect numbers in red.</li>
+            <li style="padding-left:72px;text-indent:-72px;margin-bottom:2px;"><strong style="display:inline-block;min-width:72px;text-indent:0;color:rgba(255,255,255,0.7);">💡 Hint</strong> Fill in a random empty cell with the correct number (3 per game).</li>
+            <li style="padding-left:72px;text-indent:-72px;margin-bottom:0;"><strong style="display:inline-block;min-width:72px;text-indent:0;color:rgba(255,255,255,0.7);">↻ New</strong> Start a fresh puzzle at the current difficulty.</li>
+          </ul>
+        </li>
+      </ol>
+    </div>
+
+    <!-- Game board (cells injected by JS) -->
+    <div class="board-wrap">
+      <div class="board" id="board"></div>
+    </div>
+
+    <!-- Number pad 1–9 -->
+    <div class="numpad" id="numpad">
+      <button class="num-btn" onclick="inputNum(1)">1</button>
+      <button class="num-btn" onclick="inputNum(2)">2</button>
+      <button class="num-btn" onclick="inputNum(3)">3</button>
+      <button class="num-btn" onclick="inputNum(4)">4</button>
+      <button class="num-btn" onclick="inputNum(5)">5</button>
+      <button class="num-btn" onclick="inputNum(6)">6</button>
+      <button class="num-btn" onclick="inputNum(7)">7</button>
+      <button class="num-btn" onclick="inputNum(8)">8</button>
+      <button class="num-btn" onclick="inputNum(9)">9</button>
+    </div>
+
+    <!-- Tool buttons -->
+    <div class="tools">
+      <button class="tool-btn undo"     onclick="undo()">
+        <span class="tool-icon">↩</span>
+        <span class="tool-label">Undo</span>
+      </button>
+      <button class="tool-btn notes-btn" id="notes-btn" onclick="toggleNotes()">
+        <span class="tool-icon">✏️</span>
+        <span class="tool-label">Notes</span>
+      </button>
+      <button class="tool-btn check"    onclick="checkErrors()">
+        <span class="tool-icon">✓</span>
+        <span class="tool-label">Check</span>
+      </button>
+      <button class="tool-btn hint-btn" id="hint-btn"  onclick="useHint()">
+        <span class="tool-icon">💡</span>
+        <span class="tool-label">Hint</span>
+        <span class="hint-count" id="hint-count">3</span>
+      </button>
+      <button class="tool-btn new-btn"  onclick="newGame()">
+        <span class="tool-icon">↻</span>
+        <span class="tool-label">New</span>
+      </button>
+    </div>
+
+  </div><!-- #play-tab -->
+
+  <!-- ════════════════════════════════════
+       WIN OVERLAY
+  ════════════════════════════════════ -->
+  <div class="win-overlay hidden" id="win-overlay">
+    <div class="win-box">
+      <div class="win-emoji">🎉</div>
+      <h2>Puzzle Complete!</h2>
+      <p>Time: <strong id="win-time">--:--</strong></p>
+      <button class="btn-win" onclick="dismissWin()">↻&nbsp; New Puzzle</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════
+       STRATEGIES TAB
+  ════════════════════════════════════ -->
+  <div id="strategies-tab" class="tab-panel">
+
+    <!-- Sub-tabs: Basic | Intermediate | Advanced -->
+    <div class="strat-tab-bar">
+      <button class="strat-tab-btn active-basic"  id="stab-basic" onclick="showStratTab('basic')">Basic</button>
+      <button class="strat-tab-btn"               id="stab-inter" onclick="showStratTab('intermediate')">Intermediate</button>
+      <button class="strat-tab-btn"               id="stab-adv"   onclick="showStratTab('advanced')">Advanced</button>
+    </div>
+
+    <!-- ── BASIC (5 strategies) ── -->
+    <div id="strat-basic" class="strat-panel active">
+
+      <!-- 1. Last Free Cell -->
+      <div class="strat-card basic">
+        <div class="strat-num">Strategy 1 · Basic</div>
+        <div class="strat-name">Last Free Cell</div>
+        <div class="strat-desc">If a row, column, or 3×3 box has eight of its nine cells filled, the remaining empty cell must contain the only missing digit. Always scan for nearly-complete units first — they are the quickest wins on the board.</div>
+        <!--
+          Full 9×9 grid. Cell = 30px, grid offset = 20px.
+          All cells grey (#b8c5d8). Top-left box slightly lighter (#d8e2ee) with digits 1–8.
+          Answer cell (row 2, col 2) white with "9" in blue. Yellow border frames the box (basic level).
+          Cell (r,c) top-left: x=20+c*30, y=20+r*30. Center: cx=35+c*30, cy=35+r*30.
+        -->
+        <svg class="strat-svg" viewBox="0 0 310 310" width="390" height="390">
+          <defs><clipPath id="s1clip"><rect x="20" y="20" width="270" height="270" rx="8"/></clipPath><filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <!-- Light SVG background -->
+          <rect width="310" height="310" fill="#f4f6fa"/>
+          <g clip-path="url(#s1clip)">
+            <!-- Grey fill: all 81 cells -->
+            <rect x="20" y="20" width="270" height="270" fill="#b8c5d8"/>
+            <!-- Top-left box (rows 0-2, cols 0-2) slightly lighter — this is our focus box -->
+            <rect x="20" y="20" width="90" height="90" fill="#d8e2ee"/>
+            <!-- Answer cell (row 2, col 2): x=80, y=80 — white -->
+            <rect x="80" y="80" width="30" height="30" fill="#ffffff"/>
+            <!-- Thin cell borders (inside each 3×3 box) -->
+            <g stroke="#8a9ab8" stroke-width="0.6" opacity="0.7">
+              <line x1="50"  y1="20" x2="50"  y2="290"/>
+              <line x1="80"  y1="20" x2="80"  y2="290"/>
+              <line x1="140" y1="20" x2="140" y2="290"/>
+              <line x1="170" y1="20" x2="170" y2="290"/>
+              <line x1="230" y1="20" x2="230" y2="290"/>
+              <line x1="260" y1="20" x2="260" y2="290"/>
+              <line x1="20" y1="50"  x2="290" y2="50"/>
+              <line x1="20" y1="80"  x2="290" y2="80"/>
+              <line x1="20" y1="140" x2="290" y2="140"/>
+              <line x1="20" y1="170" x2="290" y2="170"/>
+              <line x1="20" y1="230" x2="290" y2="230"/>
+              <line x1="20" y1="260" x2="290" y2="260"/>
+            </g>
+            <!-- Thick box-boundary dividers (every 3 cells) -->
+            <line x1="110" y1="20" x2="110" y2="290" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="200" y1="20" x2="200" y2="290" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="20" y1="110" x2="290" y2="110" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="20" y1="200" x2="290" y2="200" stroke="#34455e" stroke-width="2.5"/>
+            <!-- Digits 1–8 in top-left box cells -->
+            <text x="35" y="41" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">1</text>
+            <text x="65" y="41" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">2</text>
+            <text x="95" y="41" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">3</text>
+            <text x="35" y="71" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">4</text>
+            <text x="65" y="71" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">5</text>
+            <text x="95" y="71" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">6</text>
+            <text x="35"  y="101" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">7</text>
+            <text x="65"  y="101" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">8</text>
+            <text x="95"  y="101" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="18" font-weight="800" fill="#2196F3">9</text>
+          </g>
+          <!-- Rounded outer border -->
+          <rect x="20" y="20" width="270" height="270" fill="none" stroke="#34455e" stroke-width="3" rx="8"/>
+          <!-- Yellow focus box border on top with glow (basic = yellow) -->
+          <rect x="20" y="20" width="90" height="90" fill="none" stroke="#FFD600" stroke-width="4" filter="url(#glow)"/>
+        </svg>
+      </div>
+
+      <!-- 2. Scanning & Cross-Hatching -->
+      <div class="strat-card basic">
+        <div class="strat-num">Strategy 2 · Basic</div>
+        <div class="strat-name">Scanning &amp; Cross-Hatching</div>
+        <div class="strat-desc">Pick a digit — say 2. Find every row and column that already contains a 2 and mark them as blocked. Any cell at the intersection of two blocked lines is eliminated. If only one cell in a 3×3 box is left unblocked, that cell must hold your 2. Repeat for every digit 1–9.</div>
+        <!--
+          Two 9×9 grids side by side. Cell = 26px.
+          Left grid offset: x=10, y=32. Right grid offset: x=260, y=32.
+          Grid area: 234×234. Total SVG: 504×286. viewBox crops 22px from top so top/side padding match.
+          "2" already placed at (r,c): (3,0), (5,2), (1,6), (7,8).
+          Blocked rows: 3 and 5 → yellow highlight.
+          Blocked cols: 6 and 8 → yellow highlight.
+          Target box: rows 3-5, cols 6-8 → yellow border (basic level).
+          Only cell (4,7) is unblocked → white cell.
+          Right grid: same + "2" in blue at (4,7).
+          Cell center cx = offset_x + c*26 + 13. cy = offset_y + r*26 + 13. text_y = cy + 6.
+        -->
+        <svg class="strat-svg" viewBox="0 22 504 264" width="100%" style="max-width:655px">
+          <defs>
+            <clipPath id="s2lclip"><rect x="10" y="32" width="234" height="234" rx="7"/></clipPath>
+            <clipPath id="s2rclip"><rect x="260" y="32" width="234" height="234" rx="7"/></clipPath>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <!-- SVG background -->
+          <rect width="504" height="286" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s2lclip)">
+            <!-- Grey base: all cells -->
+            <rect x="10" y="32" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Yellow: blocked row 3 -->
+            <rect x="10" y="110" width="234" height="26" fill="#fff3c4"/>
+            <!-- Yellow: blocked row 5 -->
+            <rect x="10" y="162" width="234" height="26" fill="#fff3c4"/>
+            <!-- Yellow: blocked col 6 -->
+            <rect x="166" y="32" width="26" height="234" fill="#fff3c4"/>
+            <!-- Yellow: blocked col 8 -->
+            <rect x="218" y="32" width="26" height="234" fill="#fff3c4"/>
+            <!-- White: target cell (4,7) -->
+            <rect x="192" y="136" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders (inside boxes) -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="32" x2="36"  y2="266"/>
+              <line x1="62"  y1="32" x2="62"  y2="266"/>
+              <line x1="114" y1="32" x2="114" y2="266"/>
+              <line x1="140" y1="32" x2="140" y2="266"/>
+              <line x1="192" y1="32" x2="192" y2="266"/>
+              <line x1="218" y1="32" x2="218" y2="266"/>
+              <line x1="10" y1="58"  x2="244" y2="58"/>
+              <line x1="10" y1="84"  x2="244" y2="84"/>
+              <line x1="10" y1="136" x2="244" y2="136"/>
+              <line x1="10" y1="162" x2="244" y2="162"/>
+              <line x1="10" y1="214" x2="244" y2="214"/>
+              <line x1="10" y1="240" x2="244" y2="240"/>
+            </g>
+            <!-- Thick box-boundary dividers -->
+            <line x1="88"  y1="32" x2="88"  y2="266" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="32" x2="166" y2="266" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="110" x2="244" y2="110" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="188" x2="244" y2="188" stroke="#34455e" stroke-width="2"/>
+            <!-- "2" markers -->
+            <text x="23"  y="129" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">2</text>
+            <text x="75"  y="181" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">2</text>
+            <text x="179" y="77"  text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">2</text>
+            <text x="231" y="233" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">2</text>
+          </g>
+          <!-- Left grid rounded outer border -->
+          <rect x="10" y="32" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Yellow focus border on top with glow -->
+          <rect x="166" y="110" width="78" height="78" fill="none" stroke="#FFD600" stroke-width="3.5" filter="url(#glow)"/>
+          <!-- Left grid label -->
+          <text x="127" y="278" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="10" fill="#6a7a96">Rows &amp; columns with 2 are blocked</text>
+
+          <!-- ═══ RIGHT GRID ═══ -->
+          <g clip-path="url(#s2rclip)">
+            <!-- Grey base -->
+            <rect x="260" y="32" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Yellow: blocked row 3 -->
+            <rect x="260" y="110" width="234" height="26" fill="#fff3c4"/>
+            <!-- Yellow: blocked row 5 -->
+            <rect x="260" y="162" width="234" height="26" fill="#fff3c4"/>
+            <!-- Yellow: blocked col 6 -->
+            <rect x="416" y="32" width="26" height="234" fill="#fff3c4"/>
+            <!-- Yellow: blocked col 8 -->
+            <rect x="468" y="32" width="26" height="234" fill="#fff3c4"/>
+            <!-- White: target cell (4,7) -->
+            <rect x="442" y="136" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="286" y1="32" x2="286" y2="266"/>
+              <line x1="312" y1="32" x2="312" y2="266"/>
+              <line x1="364" y1="32" x2="364" y2="266"/>
+              <line x1="390" y1="32" x2="390" y2="266"/>
+              <line x1="442" y1="32" x2="442" y2="266"/>
+              <line x1="468" y1="32" x2="468" y2="266"/>
+              <line x1="260" y1="58"  x2="494" y2="58"/>
+              <line x1="260" y1="84"  x2="494" y2="84"/>
+              <line x1="260" y1="136" x2="494" y2="136"/>
+              <line x1="260" y1="162" x2="494" y2="162"/>
+              <line x1="260" y1="214" x2="494" y2="214"/>
+              <line x1="260" y1="240" x2="494" y2="240"/>
+            </g>
+            <!-- Thick box-boundary dividers -->
+            <line x1="338" y1="32" x2="338" y2="266" stroke="#34455e" stroke-width="2"/>
+            <line x1="416" y1="32" x2="416" y2="266" stroke="#34455e" stroke-width="2"/>
+            <line x1="260" y1="110" x2="494" y2="110" stroke="#34455e" stroke-width="2"/>
+            <line x1="260" y1="188" x2="494" y2="188" stroke="#34455e" stroke-width="2"/>
+            <!-- "2" markers -->
+            <text x="273" y="129" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">2</text>
+            <text x="325" y="181" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">2</text>
+            <text x="429" y="77"  text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">2</text>
+            <text x="481" y="233" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">2</text>
+            <!-- ANSWER: "2" in blue -->
+            <text x="455" y="155" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="800" fill="#2196F3">2</text>
+          </g>
+          <!-- Right grid rounded outer border -->
+          <rect x="260" y="32" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Yellow focus border on top with glow -->
+          <rect x="416" y="110" width="78" height="78" fill="none" stroke="#FFD600" stroke-width="3.5" filter="url(#glow)"/>
+          <!-- Right grid label -->
+          <text x="377" y="278" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="10" fill="#6a7a96">Only one cell left → place 2 here</text>
+        </svg>
+      </div>
+
+      <!-- 3. Last Possible Number -->
+      <div class="strat-card basic">
+        <div class="strat-num">Strategy 3 · Basic</div>
+        <div class="strat-name">Last Possible Number</div>
+        <div class="strat-desc">For any empty cell, check which digits already appear in its row, column, and 3×3 box. If together they cover eight of the nine digits, the one remaining digit must go in that cell.</div>
+        <!--
+          Full 9×9 grid. Cell = 30px, grid offset = 20px.
+          Row 4, Col 4, and Box (1,1) TOGETHER eliminate 8 digits.
+          Row 4 contributes: 8, 3, 5.  Col 4 contributes: 6, 9.  Box contributes: 1, 2, 4.
+          Combined = {1,2,3,4,5,6,8,9} → missing 7. Target (4,4) = 7.
+          Yellow row + col, lighter box, yellow glow frame on box.
+        -->
+        <svg class="strat-svg" viewBox="0 0 310 310" width="390" height="390">
+          <defs><clipPath id="s3clip"><rect x="20" y="20" width="270" height="270" rx="8"/></clipPath><filter id="s3glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <rect width="310" height="310" fill="#f4f6fa"/>
+          <g clip-path="url(#s3clip)">
+            <!-- Grey base -->
+            <rect x="20" y="20" width="270" height="270" fill="#b8c5d8"/>
+            <!-- Lighter shade for box (1,1): rows 3-5, cols 3-5 -->
+            <rect x="110" y="110" width="90" height="90" fill="#d8e2ee"/>
+            <!-- Yellow: row 4 -->
+            <rect x="20" y="140" width="270" height="30" fill="#fff3c4"/>
+            <!-- Yellow: col 4 -->
+            <rect x="140" y="20" width="30" height="270" fill="#fff3c4"/>
+            <!-- White: target cell (4,4) -->
+            <rect x="140" y="140" width="30" height="30" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.6" opacity="0.7">
+              <line x1="50"  y1="20" x2="50"  y2="290"/>
+              <line x1="80"  y1="20" x2="80"  y2="290"/>
+              <line x1="140" y1="20" x2="140" y2="290"/>
+              <line x1="170" y1="20" x2="170" y2="290"/>
+              <line x1="230" y1="20" x2="230" y2="290"/>
+              <line x1="260" y1="20" x2="260" y2="290"/>
+              <line x1="20" y1="50"  x2="290" y2="50"/>
+              <line x1="20" y1="80"  x2="290" y2="80"/>
+              <line x1="20" y1="140" x2="290" y2="140"/>
+              <line x1="20" y1="170" x2="290" y2="170"/>
+              <line x1="20" y1="230" x2="290" y2="230"/>
+              <line x1="20" y1="260" x2="290" y2="260"/>
+            </g>
+            <!-- Thick box-boundary dividers -->
+            <line x1="110" y1="20" x2="110" y2="290" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="200" y1="20" x2="200" y2="290" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="20" y1="110" x2="290" y2="110" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="20" y1="200" x2="290" y2="200" stroke="#34455e" stroke-width="2.5"/>
+            <!-- Digits from ROW 4: 8, 3, 5 -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="15" font-weight="700" fill="#2d3a50">
+              <text x="35"  y="161">8</text>
+              <text x="95"  y="161">3</text>
+              <text x="245" y="161">5</text>
+            </g>
+            <!-- Digits from COL 4: 6, 9 -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="15" font-weight="700" fill="#2d3a50">
+              <text x="155" y="41">6</text>
+              <text x="155" y="71">9</text>
+            </g>
+            <!-- Digits from BOX (1,1): 1, 2, 4 -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="15" font-weight="700" fill="#2d3a50">
+              <text x="125" y="131">1</text>
+              <text x="185" y="131">2</text>
+              <text x="125" y="191">4</text>
+            </g>
+            <!-- Answer "7" in blue -->
+            <text x="155" y="161" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="18" font-weight="800" fill="#2196F3">7</text>
+          </g>
+          <!-- Rounded outer border -->
+          <rect x="20" y="20" width="270" height="270" fill="none" stroke="#34455e" stroke-width="3" rx="8"/>
+          <!-- Yellow glow frame on box (1,1) — the third unit completing the elimination -->
+          <rect x="110" y="110" width="90" height="90" fill="none" stroke="#FFD600" stroke-width="4" filter="url(#s3glow)"/>
+        </svg>
+      </div>
+
+      <!-- 4. Hidden Single -->
+      <div class="strat-card basic">
+        <div class="strat-num">Strategy 4 · Basic</div>
+        <div class="strat-name">Hidden Single</div>
+        <div class="strat-desc">A digit that can only be placed in one cell within a row, column, or box — even though that cell appears to have multiple options. For each unit, ask yourself: "Is there any digit that fits in only one cell here?" If yes, that digit belongs there immediately.</div>
+        <!--
+          Full 9×9 grid. Cell = 30px, grid offset = 20px.
+          "7" exists at (0,3), (3,7), (4,0), (7,4) — blocking rows 3 & 4 and cols 3 & 4
+          from the center box (rows 3-5, cols 3-5). Only cell (5,5) is unblocked → hidden single.
+          Yellow highlights: row 3 (y=110), row 4 (y=140), col 3 (x=110), col 4 (x=140).
+          White target cell (5,5): x=170, y=170. Answer "7" in blue at cx=185, text_y=191.
+        -->
+        <svg class="strat-svg" viewBox="0 0 310 310" width="390" height="390">
+          <defs><clipPath id="s4clip"><rect x="20" y="20" width="270" height="270" rx="8"/></clipPath><filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <rect width="310" height="310" fill="#f4f6fa"/>
+          <g clip-path="url(#s4clip)">
+            <!-- Grey base -->
+            <rect x="20" y="20" width="270" height="270" fill="#b8c5d8"/>
+            <!-- Focus box (rows 3-5, cols 3-5) slightly lighter -->
+            <rect x="110" y="110" width="90" height="90" fill="#d8e2ee"/>
+            <!-- Yellow: blocked row 3 -->
+            <rect x="20" y="110" width="270" height="30" fill="#fff3c4"/>
+            <!-- Yellow: blocked row 4 -->
+            <rect x="20" y="140" width="270" height="30" fill="#fff3c4"/>
+            <!-- Yellow: blocked col 3 -->
+            <rect x="110" y="20" width="30" height="270" fill="#fff3c4"/>
+            <!-- Yellow: blocked col 4 -->
+            <rect x="140" y="20" width="30" height="270" fill="#fff3c4"/>
+            <!-- White: target cell (5,5) — only free cell in box -->
+            <rect x="170" y="170" width="30" height="30" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.6" opacity="0.7">
+              <line x1="50"  y1="20" x2="50"  y2="290"/>
+              <line x1="80"  y1="20" x2="80"  y2="290"/>
+              <line x1="140" y1="20" x2="140" y2="290"/>
+              <line x1="170" y1="20" x2="170" y2="290"/>
+              <line x1="230" y1="20" x2="230" y2="290"/>
+              <line x1="260" y1="20" x2="260" y2="290"/>
+              <line x1="20" y1="50"  x2="290" y2="50"/>
+              <line x1="20" y1="80"  x2="290" y2="80"/>
+              <line x1="20" y1="140" x2="290" y2="140"/>
+              <line x1="20" y1="170" x2="290" y2="170"/>
+              <line x1="20" y1="230" x2="290" y2="230"/>
+              <line x1="20" y1="260" x2="290" y2="260"/>
+            </g>
+            <!-- Thick box-boundary dividers -->
+            <line x1="110" y1="20" x2="110" y2="290" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="200" y1="20" x2="200" y2="290" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="20" y1="110" x2="290" y2="110" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="20" y1="200" x2="290" y2="200" stroke="#34455e" stroke-width="2.5"/>
+            <!-- Existing "7"s that create the constraints -->
+            <text x="125" y="41"  text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">7</text>
+            <text x="245" y="131" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">7</text>
+            <text x="35"  y="161" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">7</text>
+            <text x="155" y="251" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">7</text>
+            <!-- Answer "7" in blue at (5,5) — the hidden single -->
+            <text x="185" y="191" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="18" font-weight="800" fill="#2196F3">7</text>
+          </g>
+          <!-- Rounded outer border -->
+          <rect x="20" y="20" width="270" height="270" fill="none" stroke="#34455e" stroke-width="3" rx="8"/>
+          <!-- Yellow focus box border on top with glow (basic = yellow) -->
+          <rect x="110" y="110" width="90" height="90" fill="none" stroke="#FFD600" stroke-width="4" filter="url(#glow)"/>
+        </svg>
+      </div>
+
+      <!-- 5. Near-Complete Lines -->
+      <div class="strat-card basic">
+        <div class="strat-num">Strategy 5 · Basic</div>
+        <div class="strat-name">Near-Complete Lines</div>
+        <div class="strat-desc">When a row or column has only 2–3 empty cells remaining, list the missing digits. Then use constraints from the intersecting rows, columns, and boxes to determine which digit goes in which remaining cell.</div>
+        <!--
+          Full 9×9 grid. Cell = 30px, grid offset = 20px.
+          Row 4 is near-complete: 4, 8, _, 6, 1, _, 5, 3, 9. Missing: 2 at col 2, 7 at col 5.
+          Yellow highlight on row 4. White empty cells at (4,2) x=80,y=140 and (4,5) x=170,y=140.
+          Yellow border frames the full row (focus = the near-complete line). Answers in blue.
+        -->
+        <svg class="strat-svg" viewBox="0 0 310 310" width="390" height="390">
+          <defs><clipPath id="s5clip"><rect x="20" y="20" width="270" height="270" rx="8"/></clipPath><filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+          <rect width="310" height="310" fill="#f4f6fa"/>
+          <g clip-path="url(#s5clip)">
+            <!-- Grey base -->
+            <rect x="20" y="20" width="270" height="270" fill="#b8c5d8"/>
+            <!-- Yellow: col 2 — existing 7 blocks 7 from row 4 col 2 -->
+            <rect x="80" y="20" width="30" height="270" fill="#fff3c4"/>
+            <!-- Yellow: col 5 — existing 2 blocks 2 from row 4 col 5 -->
+            <rect x="170" y="20" width="30" height="270" fill="#fff3c4"/>
+            <!-- Yellow: near-complete row 4 -->
+            <rect x="20" y="140" width="270" height="30" fill="#fff3c4"/>
+            <!-- White: empty cells (4,2) and (4,5) -->
+            <rect x="80"  y="140" width="30" height="30" fill="#ffffff"/>
+            <rect x="170" y="140" width="30" height="30" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.6" opacity="0.7">
+              <line x1="50"  y1="20" x2="50"  y2="290"/>
+              <line x1="80"  y1="20" x2="80"  y2="290"/>
+              <line x1="140" y1="20" x2="140" y2="290"/>
+              <line x1="170" y1="20" x2="170" y2="290"/>
+              <line x1="230" y1="20" x2="230" y2="290"/>
+              <line x1="260" y1="20" x2="260" y2="290"/>
+              <line x1="20" y1="50"  x2="290" y2="50"/>
+              <line x1="20" y1="80"  x2="290" y2="80"/>
+              <line x1="20" y1="140" x2="290" y2="140"/>
+              <line x1="20" y1="170" x2="290" y2="170"/>
+              <line x1="20" y1="230" x2="290" y2="230"/>
+              <line x1="20" y1="260" x2="290" y2="260"/>
+            </g>
+            <!-- Thick box-boundary dividers -->
+            <line x1="110" y1="20" x2="110" y2="290" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="200" y1="20" x2="200" y2="290" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="20" y1="110" x2="290" y2="110" stroke="#34455e" stroke-width="2.5"/>
+            <line x1="20" y1="200" x2="290" y2="200" stroke="#34455e" stroke-width="2.5"/>
+            <!-- Filled digits in row 4 -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">
+              <text x="35"  y="161">4</text>
+              <text x="65"  y="161">8</text>
+              <text x="125" y="161">6</text>
+              <text x="155" y="161">1</text>
+              <text x="215" y="161">5</text>
+              <text x="245" y="161">3</text>
+              <text x="275" y="161">9</text>
+            </g>
+            <!-- Constraint: 7 at (1,2) → col 2 already has 7 → 2 must go at (4,2) -->
+            <text x="95" y="71" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">7</text>
+            <!-- Constraint: 2 at (2,5) → col 5 already has 2 → 7 must go at (4,5) -->
+            <text x="185" y="101" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2d3a50">2</text>
+            <!-- Answer digits in blue: 2 at (4,2), 7 at (4,5) -->
+            <text x="95"  y="161" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="18" font-weight="800" fill="#2196F3">2</text>
+            <text x="185" y="161" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="18" font-weight="800" fill="#2196F3">7</text>
+          </g>
+          <!-- Rounded outer border -->
+          <rect x="20" y="20" width="270" height="270" fill="none" stroke="#34455e" stroke-width="3" rx="8"/>
+          <!-- Yellow row focus border on top with glow (basic = yellow) -->
+          <rect x="20" y="140" width="270" height="30" fill="none" stroke="#FFD600" stroke-width="3.5" filter="url(#glow)"/>
+        </svg>
+      </div>
+
+    </div><!-- #strat-basic -->
+
+    <!-- ── INTERMEDIATE (6 strategies) ── -->
+    <div id="strat-intermediate" class="strat-panel">
+
+      <!-- 6. Pencil Marks -->
+      <div class="strat-card intermediate">
+        <div class="strat-num">Strategy 6 · Intermediate</div>
+        <div class="strat-name">Pencil Marks (Candidate Numbers)</div>
+        <div class="strat-desc">In each empty cell, write in small digits every number from 1–9 that is not already present in that cell's row, column, or box. Keep candidates updated as you place digits — erase any candidate in the same row, column, or box whenever a new digit is confirmed.</div>
+        <!--
+          Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right enlarged cell.
+          Target (4,4): row has {4,8,9}, col has {2,6}, box has {3} → eliminates 2,3,4,6,8,9.
+          Remaining candidates {1, 5, 7} shown as pencil marks.
+          Right panel: enlarged 90×90 pencil grid showing candidates in blue, absent in grey.
+        -->
+        <svg class="strat-svg" viewBox="0 0 390 254" width="100%" style="max-width:507px">
+          <defs>
+            <clipPath id="s6clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="390" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s6clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <rect x="88" y="88" width="78" height="78" fill="#d8e2ee"/>
+            <!-- Yellow: row 4 -->
+            <rect x="10" y="114" width="234" height="26" fill="#fff3c4"/>
+            <!-- Yellow: col 4 -->
+            <rect x="114" y="10" width="26" height="234" fill="#fff3c4"/>
+            <!-- White: target (4,4) -->
+            <rect x="114" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box-boundary dividers -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Row 4 digits — eliminates 4, 8, 9 -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="23"  y="132">4</text>
+              <text x="49"  y="132">8</text>
+              <text x="231" y="132">9</text>
+            </g>
+            <!-- Col 4 digits — eliminates 6, 2 -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="127" y="28">6</text>
+              <text x="127" y="54">2</text>
+            </g>
+            <!-- Box digit (3,3)=3 — eliminates 3 -->
+            <text x="101" y="106" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">3</text>
+            <!-- Tiny pencil marks in target cell -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#2196F3">
+              <text x="120" y="123">1</text>
+              <text x="127" y="131">5</text>
+              <text x="120" y="138">7</text>
+            </g>
+          </g>
+          <!-- Left grid outer border -->
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Blue focus box on top with glow (intermediate = blue) -->
+          <rect x="88" y="88" width="78" height="78" fill="none" stroke="#2196F3" stroke-width="3.5" filter="url(#glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="145" y1="127" x2="272" y2="127" stroke="#2196F3" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="272,123 280,127 272,131" fill="#2196F3" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: ENLARGED CELL ═══ -->
+          <rect x="282" y="82" width="90" height="90" rx="6" fill="#ffffff" stroke="#34455e" stroke-width="2"/>
+          <!-- 3×3 pencil grid lines -->
+          <g stroke="#e0e0e0" stroke-width="0.8">
+            <line x1="312" y1="85" x2="312" y2="169"/>
+            <line x1="342" y1="85" x2="342" y2="169"/>
+            <line x1="285" y1="112" x2="369" y2="112"/>
+            <line x1="285" y1="142" x2="369" y2="142"/>
+          </g>
+          <!-- Absent digits (light grey) -->
+          <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="12" font-weight="600" fill="#d0d0d0">
+            <text x="327" y="102">2</text>
+            <text x="357" y="102">3</text>
+            <text x="297" y="132">4</text>
+            <text x="357" y="132">6</text>
+            <text x="327" y="162">8</text>
+            <text x="357" y="162">9</text>
+          </g>
+          <!-- Present candidates (blue, larger) -->
+          <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="800" fill="#2196F3">
+            <text x="297" y="103">1</text>
+            <text x="327" y="133">5</text>
+            <text x="297" y="163">7</text>
+          </g>
+          <!-- Label below -->
+          <text x="327" y="186" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" fill="#6a7a96">Candidates: 1, 5, 7</text>
+        </svg>
+      </div>
+
+      <!-- 7. Naked Single -->
+      <div class="strat-card intermediate">
+        <div class="strat-num">Strategy 7 · Intermediate</div>
+        <div class="strat-name">Naked Single</div>
+        <div class="strat-desc">Any cell with only one candidate remaining must contain that digit. After setting up pencil marks, scan for naked singles continuously — they are the most immediate placements available and often trigger chain reactions.</div>
+        <!--
+          Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right enlarged cell.
+          Target (4,4): row has {1,2,3,4,6,8,9}, col has {7} → only candidate is 5 → naked single.
+          Right panel: enlarged 90×90 pencil grid showing 8 eliminated digits and "5" remaining.
+        -->
+        <svg class="strat-svg" viewBox="0 0 390 254" width="100%" style="max-width:507px">
+          <defs>
+            <clipPath id="s7clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="390" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s7clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <rect x="88" y="88" width="78" height="78" fill="#d8e2ee"/>
+            <!-- Yellow: row 4 -->
+            <rect x="10" y="114" width="234" height="26" fill="#fff3c4"/>
+            <!-- Yellow: col 4 -->
+            <rect x="114" y="10" width="26" height="234" fill="#fff3c4"/>
+            <!-- White: target (4,4) -->
+            <rect x="114" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box-boundary dividers -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Row 4 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="23"  y="132">4</text>
+              <text x="49"  y="132">8</text>
+              <text x="75"  y="132">1</text>
+              <text x="101" y="132">6</text>
+              <text x="153" y="132">9</text>
+              <text x="179" y="132">2</text>
+              <text x="231" y="132">3</text>
+            </g>
+            <!-- Col 4 digit -->
+            <text x="127" y="28" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">7</text>
+            <!-- Pencil mark "5" in target cell -->
+            <text x="127" y="130" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="7" font-weight="700" fill="#2196F3">5</text>
+          </g>
+          <!-- Left grid outer border -->
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Blue focus box on top with glow (intermediate = blue) -->
+          <rect x="88" y="88" width="78" height="78" fill="none" stroke="#2196F3" stroke-width="3.5" filter="url(#glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="145" y1="127" x2="272" y2="127" stroke="#2196F3" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="272,123 280,127 272,131" fill="#2196F3" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: ENLARGED CELL ═══ -->
+          <rect x="282" y="82" width="90" height="90" rx="6" fill="#ffffff" stroke="#34455e" stroke-width="2"/>
+          <!-- 3×3 pencil grid lines -->
+          <g stroke="#e0e0e0" stroke-width="0.8">
+            <line x1="312" y1="85" x2="312" y2="169"/>
+            <line x1="342" y1="85" x2="342" y2="169"/>
+            <line x1="285" y1="112" x2="369" y2="112"/>
+            <line x1="285" y1="142" x2="369" y2="142"/>
+          </g>
+          <!-- Eliminated digits (grey) with red strikethrough -->
+          <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="12" font-weight="600" fill="#c8c8c8">
+            <text x="297" y="102">1</text>
+            <text x="327" y="102">2</text>
+            <text x="357" y="102">3</text>
+            <text x="297" y="132">4</text>
+            <text x="357" y="132">6</text>
+            <text x="297" y="162">7</text>
+            <text x="327" y="162">8</text>
+            <text x="357" y="162">9</text>
+          </g>
+          <g stroke="#E53935" stroke-width="1.2" opacity="0.5">
+            <line x1="288" y1="98" x2="306" y2="98"/>
+            <line x1="318" y1="98" x2="336" y2="98"/>
+            <line x1="348" y1="98" x2="366" y2="98"/>
+            <line x1="288" y1="128" x2="306" y2="128"/>
+            <line x1="348" y1="128" x2="366" y2="128"/>
+            <line x1="288" y1="158" x2="306" y2="158"/>
+            <line x1="318" y1="158" x2="336" y2="158"/>
+            <line x1="348" y1="158" x2="366" y2="158"/>
+          </g>
+          <!-- The one remaining candidate: 5 (blue, prominent) -->
+          <text x="327" y="136" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="22" font-weight="800" fill="#2196F3">5</text>
+          <!-- Label below -->
+          <text x="327" y="186" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" fill="#6a7a96">Only candidate → place 5</text>
+        </svg>
+      </div>
+
+      <!-- 8. Naked Pair (from brainstorm) -->
+      <div class="strat-card intermediate">
+        <div class="strat-num">Strategy 8 · Intermediate</div>
+        <div class="strat-name">Naked Pair</div>
+        <div class="strat-desc">If two cells in the same row, column, or box contain exactly the same two candidates — and only those two — then those digits must occupy those two cells in some order. Eliminate both digits as candidates from every other cell in that unit.</div>
+        <!--
+          Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right enlarged pair view.
+          Row 4: 4, 8, {3,7}, 6, 1, {3,7}, 5, {2,3,7→2}, 9. Pair at (4,2) and (4,5).
+          Right panel: two enlarged cells showing the locked {3,7} pair.
+        -->
+        <svg class="strat-svg" viewBox="0 0 400 254" width="100%" style="max-width:520px">
+          <defs>
+            <clipPath id="s8clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s8clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Yellow: row 4 (the unit we analyse) -->
+            <rect x="10" y="114" width="234" height="26" fill="#fff3c4"/>
+            <!-- White: pair cell (4,2) -->
+            <rect x="62" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- White: pair cell (4,5) -->
+            <rect x="140" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- White: elimination cell (4,7) -->
+            <rect x="192" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box-boundary dividers -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Row 4 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="23"  y="132">4</text>
+              <text x="49"  y="132">8</text>
+              <text x="101" y="132">6</text>
+              <text x="127" y="132">1</text>
+              <text x="179" y="132">5</text>
+              <text x="231" y="132">9</text>
+            </g>
+            <!-- Pencil marks in pair cells: {3,7} stacked -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#2196F3">
+              <!-- (4,2) -->
+              <text x="75" y="123">3</text>
+              <text x="75" y="135">7</text>
+              <!-- (4,5) -->
+              <text x="153" y="123">3</text>
+              <text x="153" y="135">7</text>
+            </g>
+            <!-- Pencil marks in elimination cell (4,7): 2 stays, 3/7 eliminated -->
+            <text x="205" y="130" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#2196F3">2</text>
+          </g>
+          <!-- Left grid outer border -->
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Blue focus borders on pair cells with glow (intermediate = blue) -->
+          <rect x="62" y="114" width="26" height="26" fill="none" stroke="#2196F3" stroke-width="3" filter="url(#glow)"/>
+          <rect x="140" y="114" width="26" height="26" fill="none" stroke="#2196F3" stroke-width="3" filter="url(#glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="248" y1="127" x2="268" y2="127" stroke="#2196F3" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="268,123 276,127 268,131" fill="#2196F3" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: ENLARGED PAIR VIEW ═══ -->
+          <!-- Two pair cells side by side -->
+          <rect x="278" y="87" width="48" height="80" rx="4" fill="#d8eeff" stroke="#34455e" stroke-width="1.5"/>
+          <rect x="334" y="87" width="48" height="80" rx="4" fill="#d8eeff" stroke="#34455e" stroke-width="1.5"/>
+          <!-- Blue frame around both pair cells -->
+          <rect x="275" y="84" width="110" height="86" rx="6" fill="none" stroke="#2196F3" stroke-width="3" filter="url(#glow)"/>
+          <!-- Pair digits in cell A -->
+          <text x="302" y="121" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2196F3">3</text>
+          <text x="302" y="151" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2196F3">7</text>
+          <!-- Pair digits in cell B -->
+          <text x="358" y="121" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2196F3">3</text>
+          <text x="358" y="151" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2196F3">7</text>
+          <!-- Labels -->
+          <text x="330" y="80" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" font-weight="700" fill="#2196F3">Locked pair</text>
+          <text x="330" y="186" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" fill="#6a7a96">→ 3, 7 removed from row</text>
+        </svg>
+      </div>
+
+      <!-- 9. Hidden Pair -->
+      <div class="strat-card intermediate">
+        <div class="strat-num">Strategy 9 · Intermediate</div>
+        <div class="strat-name">Hidden Pair</div>
+        <div class="strat-desc">Two specific digits appear as candidates in exactly two cells within a unit, but those cells also contain other candidates. Because the two digits must occupy those two cells, remove all other candidates from those two cells — leaving only the pair.</div>
+        <!--
+          Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right enlarged pair view.
+          Row 4: 2, [HP], 6, 7, 1, 3, [HP], 5, 9. Hidden pair {4,8} at (4,1) and (4,6).
+          Only those two cells in the row contain 4 and 8 as candidates.
+          Right panel: two enlarged cells showing the cleaned result — only {4,8} remaining.
+        -->
+        <svg class="strat-svg" viewBox="0 0 400 254" width="100%" style="max-width:520px">
+          <defs>
+            <clipPath id="s9clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="s9glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s9clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Yellow: row 4 (the unit we analyse) -->
+            <rect x="10" y="114" width="234" height="26" fill="#fff3c4"/>
+            <!-- White: hidden pair cell (4,1) -->
+            <rect x="36" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- White: hidden pair cell (4,6) -->
+            <rect x="166" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box-boundary dividers -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Row 4 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="23"  y="132">2</text>
+              <text x="75"  y="132">6</text>
+              <text x="101" y="132">7</text>
+              <text x="127" y="132">1</text>
+              <text x="153" y="132">3</text>
+              <text x="205" y="132">5</text>
+              <text x="231" y="132">9</text>
+            </g>
+            <!-- Pencil marks in hidden pair cells -->
+            <!-- Cell (4,1): 4,8 kept (blue) + 1,9 eliminated (grey + strikethrough) -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700">
+              <text x="43" y="122" fill="#2196F3">4</text>
+              <text x="55" y="122" fill="#2196F3">8</text>
+              <text x="43" y="135" fill="#c8c8c8">1</text>
+              <text x="55" y="135" fill="#c8c8c8">9</text>
+            </g>
+            <g stroke="#E53935" stroke-width="0.8" opacity="0.7">
+              <line x1="39" y1="133" x2="47" y2="133"/>
+              <line x1="51" y1="133" x2="59" y2="133"/>
+            </g>
+            <!-- Cell (4,6): 4,8 kept (blue) + 3,5 eliminated (grey + strikethrough) -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700">
+              <text x="173" y="122" fill="#2196F3">4</text>
+              <text x="185" y="122" fill="#2196F3">8</text>
+              <text x="173" y="135" fill="#c8c8c8">3</text>
+              <text x="185" y="135" fill="#c8c8c8">5</text>
+            </g>
+            <g stroke="#E53935" stroke-width="0.8" opacity="0.7">
+              <line x1="169" y1="133" x2="177" y2="133"/>
+              <line x1="181" y1="133" x2="189" y2="133"/>
+            </g>
+          </g>
+          <!-- Left grid outer border -->
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Blue focus borders on hidden pair cells with glow -->
+          <rect x="36" y="114" width="26" height="26" fill="none" stroke="#2196F3" stroke-width="3" filter="url(#s9glow)"/>
+          <rect x="166" y="114" width="26" height="26" fill="none" stroke="#2196F3" stroke-width="3" filter="url(#s9glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="248" y1="127" x2="268" y2="127" stroke="#2196F3" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="268,123 276,127 268,131" fill="#2196F3" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: ENLARGED PAIR VIEW ═══ -->
+          <!-- Two cells showing the cleaned hidden pair result -->
+          <rect x="278" y="87" width="48" height="80" rx="4" fill="#d8eeff" stroke="#34455e" stroke-width="1.5"/>
+          <rect x="334" y="87" width="48" height="80" rx="4" fill="#d8eeff" stroke="#34455e" stroke-width="1.5"/>
+          <!-- Blue frame around both pair cells -->
+          <rect x="275" y="84" width="110" height="86" rx="6" fill="none" stroke="#2196F3" stroke-width="3" filter="url(#s9glow)"/>
+          <!-- Pair digits in cell A -->
+          <text x="302" y="121" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2196F3">4</text>
+          <text x="302" y="151" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2196F3">8</text>
+          <!-- Pair digits in cell B -->
+          <text x="358" y="121" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2196F3">4</text>
+          <text x="358" y="151" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#2196F3">8</text>
+          <!-- Labels -->
+          <text x="330" y="80" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" font-weight="700" fill="#2196F3">Hidden pair</text>
+          <text x="330" y="186" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" fill="#6a7a96">Others removed → only 4, 8</text>
+        </svg>
+      </div>
+
+      <!-- 10. Locked Candidates -->
+      <div class="strat-card intermediate">
+        <div class="strat-num">Strategy 10 · Intermediate</div>
+        <div class="strat-name">Locked Candidates</div>
+        <div class="strat-desc">Type 1 (Pointing): if a digit's candidates within a 3×3 box all fall in the same row or column, eliminate that digit from all other cells in that row or column outside the box. Type 2 (Claiming): if a digit's candidates in a row or column all fall within one box, eliminate that digit from the rest of the box.</div>
+        <!--
+          Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right detail panel.
+          Box (0,0) highlighted. Row 0: _, 5, _, _, 7, _, 1, _, 8.
+          Digit "3" only appears in row 0 within box (0,0): cells (0,0) and (0,2).
+          → Eliminate 3 from rest of row 0 outside the box.
+          Right panel: enlarged pointing-pair cells + elimination indicator.
+        -->
+        <svg class="strat-svg" viewBox="0 0 400 254" width="100%" style="max-width:520px">
+          <defs>
+            <clipPath id="s10clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="s10glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s10clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Lighter shade for box (0,0): rows 0-2, cols 0-2 -->
+            <rect x="10" y="10" width="78" height="78" fill="#d8e2ee"/>
+            <!-- Yellow: row 0 (the row where elimination happens) -->
+            <rect x="10" y="10" width="234" height="26" fill="#fff3c4"/>
+            <!-- White: pointing cells (0,0) and (0,2) — where "3" lives in box -->
+            <rect x="10" y="10" width="26" height="26" fill="#ffffff"/>
+            <rect x="62" y="10" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box-boundary dividers -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Row 0 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="49"  y="28">5</text>
+              <text x="127" y="28">7</text>
+              <text x="205" y="28">1</text>
+              <text x="231" y="28">8</text>
+            </g>
+            <!-- Pencil mark "3" in pointing cells (blue) -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="7" font-weight="700" fill="#2196F3">
+              <text x="23" y="26">3</text>
+              <text x="75" y="26">3</text>
+            </g>
+            <!-- Elimination indicators in row 0 outside box: cells (0,3), (0,5), (0,7) -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#c8c8c8">
+              <text x="101" y="26">3</text>
+              <text x="153" y="26">3</text>
+              <text x="179" y="26">3</text>
+            </g>
+            <g stroke="#E53935" stroke-width="0.8" opacity="0.7">
+              <line x1="97" y1="24" x2="105" y2="24"/>
+              <line x1="149" y1="24" x2="157" y2="24"/>
+              <line x1="175" y1="24" x2="183" y2="24"/>
+            </g>
+          </g>
+          <!-- Left grid outer border -->
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Blue focus box on box (0,0) with glow -->
+          <rect x="10" y="10" width="78" height="78" fill="none" stroke="#2196F3" stroke-width="3.5" filter="url(#s10glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="248" y1="127" x2="268" y2="127" stroke="#2196F3" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="268,123 276,127 268,131" fill="#2196F3" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: DETAIL PANEL ═══ -->
+          <!-- Show the pointing concept: box row with "3" → arrow → elimination -->
+          <!-- Box row (the two pointing cells) -->
+          <rect x="278" y="92" width="40" height="40" rx="4" fill="#d8eeff" stroke="#34455e" stroke-width="1.5"/>
+          <rect x="322" y="92" width="40" height="40" rx="4" fill="#d8eeff" stroke="#34455e" stroke-width="1.5"/>
+          <!-- Blue frame around pointing cells -->
+          <rect x="275" y="89" width="90" height="46" rx="5" fill="none" stroke="#2196F3" stroke-width="2.5" filter="url(#s10glow)"/>
+          <!-- "3" in pointing cells -->
+          <text x="298" y="118" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="18" font-weight="800" fill="#2196F3">3</text>
+          <text x="342" y="118" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="18" font-weight="800" fill="#2196F3">3</text>
+          <!-- Arrow pointing to elimination -->
+          <line x1="320" y1="142" x2="320" y2="155" stroke="#34455e" stroke-width="1.5"/>
+          <polygon points="316,155 320,162 324,155" fill="#34455e"/>
+          <!-- Elimination cell -->
+          <rect x="300" y="165" width="40" height="32" rx="4" fill="#fee2e2" stroke="#34455e" stroke-width="1"/>
+          <text x="320" y="185" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="11" font-weight="700" fill="#E53935">✕3</text>
+          <!-- Labels -->
+          <text x="320" y="82" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" font-weight="700" fill="#2196F3">Pointing pair</text>
+          <text x="320" y="210" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="8" fill="#6a7a96">3 locked in row → eliminate</text>
+          <text x="320" y="222" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="8" fill="#6a7a96">from rest of row</text>
+        </svg>
+      </div>
+
+      <!-- 11. Naked Triple -->
+      <div class="strat-card intermediate">
+        <div class="strat-num">Strategy 11 · Intermediate</div>
+        <div class="strat-name">Naked Triple</div>
+        <div class="strat-desc">Three cells in the same unit whose candidates together consist of only three digits — each cell may hold two or three of them. Those three digits must go into those three cells, so eliminate them from all other cells in the unit.</div>
+        <!--
+          Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right enlarged triple view.
+          Row 4: 4, 8, [NT:{2,5}], [NT:{2,7}], 1, 6, [NT:{5,7}], [elim], 9.
+          Triple at (4,2), (4,3), (4,6). Together = {2,5,7}.
+          Elimination cell (4,7): 2,5,7 removed → only 3 remains.
+          Right panel: three enlarged cells showing the triple's candidates.
+        -->
+        <svg class="strat-svg" viewBox="0 0 410 254" width="100%" style="max-width:533px">
+          <defs>
+            <clipPath id="s11clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="s11glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="410" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s11clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Yellow: row 4 (the unit we analyse) -->
+            <rect x="10" y="114" width="234" height="26" fill="#fff3c4"/>
+            <!-- White: naked triple cell (4,2) -->
+            <rect x="62" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- White: naked triple cell (4,3) -->
+            <rect x="88" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- White: naked triple cell (4,6) -->
+            <rect x="166" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- White: elimination cell (4,7) -->
+            <rect x="192" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box-boundary dividers -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Row 4 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="23"  y="132">4</text>
+              <text x="49"  y="132">8</text>
+              <text x="127" y="132">1</text>
+              <text x="153" y="132">6</text>
+              <text x="231" y="132">9</text>
+            </g>
+            <!-- Pencil marks in naked triple cells -->
+            <!-- Cell (4,2): {2,5} -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#2196F3">
+              <text x="75" y="123">2</text>
+              <text x="75" y="135">5</text>
+            </g>
+            <!-- Cell (4,3): {2,7} -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#2196F3">
+              <text x="101" y="123">2</text>
+              <text x="101" y="135">7</text>
+            </g>
+            <!-- Cell (4,6): {5,7} -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#2196F3">
+              <text x="179" y="123">5</text>
+              <text x="179" y="135">7</text>
+            </g>
+            <!-- Elimination cell (4,7): only "3" remains, 2,5,7 struck -->
+            <text x="205" y="130" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#2196F3">3</text>
+          </g>
+          <!-- Left grid outer border -->
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Blue focus borders on triple cells with glow -->
+          <rect x="62" y="114" width="26" height="26" fill="none" stroke="#2196F3" stroke-width="3" filter="url(#s11glow)"/>
+          <rect x="88" y="114" width="26" height="26" fill="none" stroke="#2196F3" stroke-width="3" filter="url(#s11glow)"/>
+          <rect x="166" y="114" width="26" height="26" fill="none" stroke="#2196F3" stroke-width="3" filter="url(#s11glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="248" y1="127" x2="268" y2="127" stroke="#2196F3" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="268,123 276,127 268,131" fill="#2196F3" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: ENLARGED TRIPLE VIEW ═══ -->
+          <!-- Three cells showing triple candidates -->
+          <rect x="278" y="87" width="36" height="80" rx="4" fill="#d8eeff" stroke="#34455e" stroke-width="1.5"/>
+          <rect x="318" y="87" width="36" height="80" rx="4" fill="#d8eeff" stroke="#34455e" stroke-width="1.5"/>
+          <rect x="358" y="87" width="36" height="80" rx="4" fill="#d8eeff" stroke="#34455e" stroke-width="1.5"/>
+          <!-- Blue frame around all three cells -->
+          <rect x="275" y="84" width="122" height="86" rx="6" fill="none" stroke="#2196F3" stroke-width="3" filter="url(#s11glow)"/>
+          <!-- Candidates in cell A: {2,5} -->
+          <text x="296" y="121" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="15" font-weight="700" fill="#2196F3">2</text>
+          <text x="296" y="151" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="15" font-weight="700" fill="#2196F3">5</text>
+          <!-- Candidates in cell B: {2,7} -->
+          <text x="336" y="121" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="15" font-weight="700" fill="#2196F3">2</text>
+          <text x="336" y="151" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="15" font-weight="700" fill="#2196F3">7</text>
+          <!-- Candidates in cell C: {5,7} -->
+          <text x="376" y="121" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="15" font-weight="700" fill="#2196F3">5</text>
+          <text x="376" y="151" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="15" font-weight="700" fill="#2196F3">7</text>
+          <!-- Labels -->
+          <text x="336" y="80" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" font-weight="700" fill="#2196F3">Naked triple</text>
+          <text x="336" y="186" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" fill="#6a7a96">Together = {2, 5, 7}</text>
+          <text x="336" y="199" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="8" fill="#E53935">→ eliminate 2, 5, 7 from row</text>
+        </svg>
+      </div>
+
+    </div><!-- #strat-intermediate -->
+
+    <!-- ── ADVANCED (6 strategies) ── -->
+    <div id="strat-advanced" class="strat-panel">
+
+      <!-- 12. X-Wing -->
+      <div class="strat-card advanced">
+        <div class="strat-num">Strategy 12 · Advanced</div>
+        <div class="strat-name">X-Wing</div>
+        <div class="strat-desc">Find a digit that appears as a candidate in exactly two cells in each of two different rows, where those cells fall in the same two columns. The four cells form a rectangle. The digit must occupy one diagonal pair or the other — eliminate that digit from all other cells in those two columns.</div>
+        <!--
+          Two-panel: left 9×9 grid + right rectangle diagram.
+          Digit 4 in exactly 2 cells in row 2 (cols 3,7) and row 6 (cols 3,7).
+          Four cells form rectangle → eliminate 4 from rest of cols 3 and 7.
+        -->
+        <svg class="strat-svg" viewBox="0 0 400 254" width="100%" style="max-width:520px">
+          <defs>
+            <clipPath id="s12clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="s12glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s12clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Yellow: row 2 and row 6 -->
+            <rect x="10" y="62" width="234" height="26" fill="#fff3c4"/>
+            <rect x="10" y="166" width="234" height="26" fill="#fff3c4"/>
+            <!-- White: X-Wing cells -->
+            <rect x="88"  y="62"  width="26" height="26" fill="#ffffff"/>
+            <rect x="192" y="62"  width="26" height="26" fill="#ffffff"/>
+            <rect x="88"  y="166" width="26" height="26" fill="#ffffff"/>
+            <rect x="192" y="166" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box borders -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Row 2 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="23"  y="80">8</text>
+              <text x="49"  y="80">1</text>
+              <text x="75"  y="80">5</text>
+              <text x="127" y="80">9</text>
+              <text x="153" y="80">6</text>
+              <text x="179" y="80">3</text>
+              <text x="231" y="80">2</text>
+            </g>
+            <!-- Row 6 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="23"  y="184">3</text>
+              <text x="49"  y="184">6</text>
+              <text x="75"  y="184">7</text>
+              <text x="127" y="184">8</text>
+              <text x="153" y="184">2</text>
+              <text x="179" y="184">1</text>
+              <text x="231" y="184">5</text>
+            </g>
+            <!-- Pencil mark "4" in X-Wing cells (red for advanced) -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="7" font-weight="700" fill="#E53935">
+              <text x="101" y="78">4</text>
+              <text x="205" y="78">4</text>
+              <text x="101" y="182">4</text>
+              <text x="205" y="182">4</text>
+            </g>
+            <!-- X connecting dashed lines between the four cells -->
+            <line x1="101" y1="75" x2="205" y2="179" stroke="#E53935" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>
+            <line x1="205" y1="75" x2="101" y2="179" stroke="#E53935" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>
+          </g>
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Red focus on X-Wing cells with glow -->
+          <rect x="88"  y="62"  width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s12glow)"/>
+          <rect x="192" y="62"  width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s12glow)"/>
+          <rect x="88"  y="166" width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s12glow)"/>
+          <rect x="192" y="166" width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s12glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="248" y1="127" x2="268" y2="127" stroke="#E53935" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="268,123 276,127 268,131" fill="#E53935" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: RECTANGLE DIAGRAM ═══ -->
+          <rect x="282" y="92" width="36" height="36" rx="4" fill="#fde8e8" stroke="#34455e" stroke-width="1.5"/>
+          <rect x="354" y="92" width="36" height="36" rx="4" fill="#fde8e8" stroke="#34455e" stroke-width="1.5"/>
+          <rect x="282" y="140" width="36" height="36" rx="4" fill="#fde8e8" stroke="#34455e" stroke-width="1.5"/>
+          <rect x="354" y="140" width="36" height="36" rx="4" fill="#fde8e8" stroke="#34455e" stroke-width="1.5"/>
+          <rect x="279" y="89" width="114" height="90" rx="6" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s12glow)"/>
+          <!-- "4" in each corner -->
+          <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="16" font-weight="700" fill="#E53935">
+            <text x="300" y="115">4</text>
+            <text x="372" y="115">4</text>
+            <text x="300" y="163">4</text>
+            <text x="372" y="163">4</text>
+          </g>
+          <!-- X connecting dashed lines -->
+          <line x1="300" y1="118" x2="372" y2="156" stroke="#E53935" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <line x1="372" y1="118" x2="300" y2="156" stroke="#E53935" stroke-width="1.5" stroke-dasharray="4,3"/>
+          <!-- Labels -->
+          <text x="336" y="82" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" font-weight="700" fill="#E53935">X-Wing pattern</text>
+          <text x="336" y="192" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" fill="#6a7a96">Eliminate 4 from columns</text>
+        </svg>
+      </div>
+
+      <!-- 13. Swordfish -->
+      <div class="strat-card advanced">
+        <div class="strat-num">Strategy 13 · Advanced</div>
+        <div class="strat-name">Swordfish</div>
+        <div class="strat-desc">An extension of X-Wing using three rows and three columns. A digit appears in two or three cells per row, and all those cells are confined to the same three columns. The digit can be eliminated from all other cells in those three columns.</div>
+        <!--
+          Two-panel: left 9×9 grid + right dot-matrix pattern.
+          Digit 6 in rows 0,3,6 confined to cols 1,4,7.
+          (0,1),(0,4) / (3,4),(3,7) / (6,1),(6,7).
+          Eliminate 6 from other cells in cols 1, 4, 7.
+        -->
+        <svg class="strat-svg" viewBox="0 0 400 254" width="100%" style="max-width:520px">
+          <defs>
+            <clipPath id="s13clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="s13glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s13clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Elimination: full column highlights for cols 1, 4, 7 (pink) -->
+            <rect x="36"  y="10" width="26" height="234" fill="#fee2e2" opacity="0.55"/>
+            <rect x="114" y="10" width="26" height="234" fill="#fee2e2" opacity="0.55"/>
+            <rect x="192" y="10" width="26" height="234" fill="#fee2e2" opacity="0.55"/>
+            <!-- Yellow: rows 0, 3, 6 (on top of pink columns) -->
+            <rect x="10" y="10"  width="234" height="26" fill="#fff3c4"/>
+            <rect x="10" y="88"  width="234" height="26" fill="#fff3c4"/>
+            <rect x="10" y="166" width="234" height="26" fill="#fff3c4"/>
+            <!-- White: Swordfish cells (on top of everything) -->
+            <rect x="36"  y="10"  width="26" height="26" fill="#ffffff"/>
+            <rect x="114" y="10"  width="26" height="26" fill="#ffffff"/>
+            <rect x="114" y="88"  width="26" height="26" fill="#ffffff"/>
+            <rect x="192" y="88"  width="26" height="26" fill="#ffffff"/>
+            <rect x="36"  y="166" width="26" height="26" fill="#ffffff"/>
+            <rect x="192" y="166" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box borders -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Row 0 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="23"  y="28">9</text>
+              <text x="75"  y="28">4</text>
+              <text x="101" y="28">8</text>
+              <text x="153" y="28">2</text>
+              <text x="179" y="28">3</text>
+              <text x="205" y="28">7</text>
+              <text x="231" y="28">5</text>
+            </g>
+            <!-- Row 3 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="23"  y="106">2</text>
+              <text x="49"  y="106">5</text>
+              <text x="75"  y="106">1</text>
+              <text x="101" y="106">4</text>
+              <text x="153" y="106">9</text>
+              <text x="179" y="106">3</text>
+              <text x="231" y="106">8</text>
+            </g>
+            <!-- Row 6 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="23"  y="184">4</text>
+              <text x="75"  y="184">8</text>
+              <text x="101" y="184">5</text>
+              <text x="127" y="184">3</text>
+              <text x="153" y="184">1</text>
+              <text x="179" y="184">9</text>
+              <text x="231" y="184">2</text>
+            </g>
+            <!-- Pencil mark "6" in Swordfish cells -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="7" font-weight="700" fill="#E53935">
+              <text x="49"  y="26">6</text>
+              <text x="127" y="26">6</text>
+              <text x="127" y="104">6</text>
+              <text x="205" y="104">6</text>
+              <text x="49"  y="182">6</text>
+              <text x="205" y="182">6</text>
+            </g>
+          </g>
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Red focus on Swordfish cells with glow -->
+          <rect x="36"  y="10"  width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s13glow)"/>
+          <rect x="114" y="10"  width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s13glow)"/>
+          <rect x="114" y="88"  width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s13glow)"/>
+          <rect x="192" y="88"  width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s13glow)"/>
+          <rect x="36"  y="166" width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s13glow)"/>
+          <rect x="192" y="166" width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s13glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="248" y1="127" x2="268" y2="127" stroke="#E53935" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="268,123 276,127 268,131" fill="#E53935" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: DOT-MATRIX PATTERN ═══ -->
+          <!-- Column headers -->
+          <g text-anchor="middle" font-family="Open Sans,sans-serif" font-size="8" font-weight="700" fill="#6a7a96">
+            <text x="300" y="82">C1</text>
+            <text x="336" y="82">C4</text>
+            <text x="372" y="82">C7</text>
+          </g>
+          <!-- Row headers -->
+          <g text-anchor="end" font-family="Open Sans,sans-serif" font-size="8" font-weight="700" fill="#6a7a96">
+            <text x="284" y="110">R0</text>
+            <text x="284" y="140">R3</text>
+            <text x="284" y="170">R6</text>
+          </g>
+          <!-- Grid cells (background) -->
+          <g fill="#f0f0f0" stroke="#ddd" stroke-width="1">
+            <rect x="288" y="92"  width="24" height="24" rx="3"/>
+            <rect x="324" y="92"  width="24" height="24" rx="3"/>
+            <rect x="360" y="92"  width="24" height="24" rx="3"/>
+            <rect x="288" y="122" width="24" height="24" rx="3"/>
+            <rect x="324" y="122" width="24" height="24" rx="3"/>
+            <rect x="360" y="122" width="24" height="24" rx="3"/>
+            <rect x="288" y="152" width="24" height="24" rx="3"/>
+            <rect x="324" y="152" width="24" height="24" rx="3"/>
+            <rect x="360" y="152" width="24" height="24" rx="3"/>
+          </g>
+          <!-- Filled cells (where candidate 6 exists) -->
+          <g fill="#fde8e8" stroke="#E53935" stroke-width="1.5">
+            <rect x="288" y="92"  width="24" height="24" rx="3"/>
+            <rect x="324" y="92"  width="24" height="24" rx="3"/>
+            <rect x="324" y="122" width="24" height="24" rx="3"/>
+            <rect x="360" y="122" width="24" height="24" rx="3"/>
+            <rect x="288" y="152" width="24" height="24" rx="3"/>
+            <rect x="360" y="152" width="24" height="24" rx="3"/>
+          </g>
+          <!-- "6" in filled cells -->
+          <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="12" font-weight="700" fill="#E53935">
+            <text x="300" y="109">6</text>
+            <text x="336" y="109">6</text>
+            <text x="336" y="139">6</text>
+            <text x="372" y="139">6</text>
+            <text x="300" y="169">6</text>
+            <text x="372" y="169">6</text>
+          </g>
+          <!-- Labels -->
+          <text x="330" y="192" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" fill="#6a7a96">Each row → 2 cells in 3 columns</text>
+          <text x="330" y="205" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="8" fill="#E53935">→ eliminate 6 from columns</text>
+        </svg>
+      </div>
+
+      <!-- 14. Skyscraper -->
+      <div class="strat-card advanced">
+        <div class="strat-num">Strategy 14 · Advanced</div>
+        <div class="strat-name">Skyscraper</div>
+        <div class="strat-desc">A digit appears in exactly two cells in each of two rows. The two pairs share one column — the "base." The other two cells (the "roof") are in different columns. Any cell that shares a row, column, or box with both roof cells cannot contain that digit.</div>
+        <!--
+          Two-panel: left 9×9 grid + right skyscraper structure diagram.
+          Digit 7 in row 1: (1,0) Roof A, (1,2) Base.
+          Digit 7 in row 5: (5,2) Base, (5,6) Roof B.
+          Shared base column: 2. Elimination: (1,6) and (5,0) see both roofs.
+        -->
+        <svg class="strat-svg" viewBox="0 0 400 254" width="100%" style="max-width:520px">
+          <defs>
+            <clipPath id="s14clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="s14glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s14clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Yellow: row 1 and row 5 -->
+            <rect x="10" y="36"  width="234" height="26" fill="#fff3c4"/>
+            <rect x="10" y="140" width="234" height="26" fill="#fff3c4"/>
+            <!-- White: key cells -->
+            <rect x="10"  y="36"  width="26" height="26" fill="#ffffff"/>
+            <rect x="62"  y="36"  width="26" height="26" fill="#ffffff"/>
+            <rect x="62"  y="140" width="26" height="26" fill="#ffffff"/>
+            <rect x="166" y="140" width="26" height="26" fill="#ffffff"/>
+            <rect x="166" y="36"  width="26" height="26" fill="#ffffff"/>
+            <rect x="10"  y="140" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box borders -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Row 1 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="49"  y="54">3</text>
+              <text x="101" y="54">8</text>
+              <text x="127" y="54">5</text>
+              <text x="153" y="54">9</text>
+              <text x="205" y="54">2</text>
+              <text x="231" y="54">1</text>
+            </g>
+            <!-- Row 5 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="49"  y="158">1</text>
+              <text x="101" y="158">4</text>
+              <text x="127" y="158">6</text>
+              <text x="153" y="158">8</text>
+              <text x="205" y="158">3</text>
+              <text x="231" y="158">9</text>
+            </g>
+            <!-- Pencil mark "7" in conjugate cells -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="7" font-weight="700" fill="#E53935">
+              <text x="23"  y="52">7</text>
+              <text x="75"  y="52">7</text>
+              <text x="75"  y="156">7</text>
+              <text x="179" y="156">7</text>
+            </g>
+            <!-- Elimination: struck "7" -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#c8c8c8">
+              <text x="179" y="52">7</text>
+              <text x="23"  y="156">7</text>
+            </g>
+            <g stroke="#E53935" stroke-width="0.8" opacity="0.7">
+              <line x1="175" y1="50" x2="183" y2="50"/>
+              <line x1="19" y1="154" x2="27" y2="154"/>
+            </g>
+          </g>
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Red focus on base cells (drawn first, softer) -->
+          <rect x="62" y="36"  width="26" height="26" fill="none" stroke="#E53935" stroke-width="2.5" filter="url(#s14glow)"/>
+          <rect x="62" y="140" width="26" height="26" fill="none" stroke="#E53935" stroke-width="2.5" filter="url(#s14glow)"/>
+          <!-- Red focus on roof cells with glow (drawn on top, stronger) -->
+          <rect x="10"  y="36"  width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s14glow)"/>
+          <rect x="166" y="140" width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s14glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="248" y1="127" x2="268" y2="127" stroke="#E53935" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="268,123 276,127 268,131" fill="#E53935" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: SKYSCRAPER DIAGRAM ═══ -->
+          <text x="336" y="82" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" font-weight="700" fill="#E53935">Skyscraper</text>
+          <!-- Roof A -->
+          <rect x="278" y="98" width="32" height="30" rx="4" fill="#fde8e8" stroke="#E53935" stroke-width="2"/>
+          <text x="294" y="117" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="10" font-weight="700" fill="#E53935">7</text>
+          <text x="294" y="93" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="7" font-weight="700" fill="#E53935">Roof A</text>
+          <!-- Base cells (stacked vertically, shared column) -->
+          <rect x="318" y="98" width="36" height="30" rx="4" fill="#fde8e8" stroke="#34455e" stroke-width="1.5"/>
+          <rect x="318" y="142" width="36" height="30" rx="4" fill="#fde8e8" stroke="#34455e" stroke-width="1.5"/>
+          <text x="336" y="117" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="10" font-weight="700" fill="#E53935">7</text>
+          <text x="336" y="161" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="10" font-weight="700" fill="#E53935">7</text>
+          <!-- Base connection -->
+          <line x1="336" y1="128" x2="336" y2="142" stroke="#34455e" stroke-width="2"/>
+          <text x="336" y="93" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="7" fill="#6a7a96">Base</text>
+          <text x="336" y="184" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="7" fill="#6a7a96">Base</text>
+          <!-- Connections base-to-roof -->
+          <line x1="310" y1="113" x2="318" y2="113" stroke="#34455e" stroke-width="1.5"/>
+          <line x1="354" y1="157" x2="362" y2="157" stroke="#34455e" stroke-width="1.5"/>
+          <!-- Roof B -->
+          <rect x="362" y="142" width="32" height="30" rx="4" fill="#fde8e8" stroke="#E53935" stroke-width="2"/>
+          <text x="378" y="161" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="10" font-weight="700" fill="#E53935">7</text>
+          <text x="378" y="184" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="7" font-weight="700" fill="#E53935">Roof B</text>
+          <!-- Sight line between roofs -->
+          <line x1="294" y1="128" x2="378" y2="142" stroke="#E53935" stroke-width="1" stroke-dasharray="3,2" opacity="0.5"/>
+          <!-- Elimination label -->
+          <text x="336" y="204" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="8" fill="#6a7a96">Sees both roofs → ✕7</text>
+        </svg>
+      </div>
+
+      <!-- 15. XY-Wing -->
+      <div class="strat-card advanced">
+        <div class="strat-num">Strategy 15 · Advanced</div>
+        <div class="strat-name">XY-Wing (Y-Wing)</div>
+        <div class="strat-desc">Three cells, each with exactly two candidates, form a pattern: a pivot cell with candidates {X,Y}, and two pincer cells with candidates {X,Z} and {Y,Z}. The pivot shares a unit with each pincer. Any cell that shares a unit with both pincers cannot contain Z — because regardless of how the pivot resolves, one pincer will always produce Z.</div>
+        <!--
+          Two-panel: left 9×9 grid + right logic tree diagram.
+          Pivot (4,4): {3,5}. Pincer 1 (4,7): {3,9}. Pincer 2 (7,4): {5,9}.
+          Elimination (7,7): sees both pincers → ✕9.
+        -->
+        <svg class="strat-svg" viewBox="0 0 400 254" width="100%" style="max-width:520px">
+          <defs>
+            <clipPath id="s15clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="s15glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s15clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Yellow: row 4 (pivot ↔ pincer 1) -->
+            <rect x="10" y="114" width="234" height="26" fill="#fff3c4"/>
+            <!-- Yellow: col 4 (pivot ↔ pincer 2) -->
+            <rect x="114" y="10" width="26" height="234" fill="#fff3c4"/>
+            <!-- White: pivot (4,4) -->
+            <rect x="114" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- White: pincer 1 (4,7) -->
+            <rect x="192" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- White: pincer 2 (7,4) -->
+            <rect x="114" y="192" width="26" height="26" fill="#ffffff"/>
+            <!-- White: elimination (7,7) -->
+            <rect x="192" y="192" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box borders -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Row 4 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="23"  y="132">2</text>
+              <text x="49"  y="132">8</text>
+              <text x="75"  y="132">6</text>
+              <text x="101" y="132">7</text>
+              <text x="153" y="132">1</text>
+              <text x="179" y="132">4</text>
+            </g>
+            <!-- Col 4 filled digits -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="700" fill="#2d3a50">
+              <text x="127" y="28">8</text>
+              <text x="127" y="54">2</text>
+            </g>
+            <!-- Pencil marks: pivot (4,4): {3,5} -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#E53935">
+              <text x="124" y="126">3</text>
+              <text x="132" y="126">5</text>
+            </g>
+            <!-- Pincer 1 (4,7): {3,9} -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#E53935">
+              <text x="202" y="126">3</text>
+              <text x="210" y="126">9</text>
+            </g>
+            <!-- Pincer 2 (7,4): {5,9} -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#E53935">
+              <text x="124" y="208">5</text>
+              <text x="132" y="208">9</text>
+            </g>
+            <!-- Elimination (7,7): "9" struck through -->
+            <text x="205" y="208" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#c8c8c8">9</text>
+            <line x1="201" y1="206" x2="209" y2="206" stroke="#E53935" stroke-width="0.8" opacity="0.7"/>
+          </g>
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Red focus on pivot (thicker) -->
+          <rect x="114" y="114" width="26" height="26" fill="none" stroke="#E53935" stroke-width="3.5" filter="url(#s15glow)"/>
+          <!-- Red focus on pincers -->
+          <rect x="192" y="114" width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s15glow)"/>
+          <rect x="114" y="192" width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s15glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="248" y1="127" x2="268" y2="127" stroke="#E53935" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="268,123 276,127 268,131" fill="#E53935" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: XY-WING LOGIC TREE ═══ -->
+          <!-- Pivot box -->
+          <rect x="308" y="84" width="56" height="30" rx="5" fill="#fde8e8" stroke="#E53935" stroke-width="2"/>
+          <text x="336" y="96" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="8" font-weight="700" fill="#6a7a96">Pivot</text>
+          <text x="336" y="109" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="10" font-weight="700" fill="#E53935">{3, 5}</text>
+          <!-- Branches -->
+          <line x1="318" y1="114" x2="300" y2="135" stroke="#34455e" stroke-width="1.5"/>
+          <line x1="354" y1="114" x2="372" y2="135" stroke="#34455e" stroke-width="1.5"/>
+          <!-- Pincer 1 -->
+          <rect x="274" y="137" width="52" height="30" rx="5" fill="#fde8e8" stroke="#E53935" stroke-width="2"/>
+          <text x="300" y="149" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="7" font-weight="700" fill="#6a7a96">Pincer 1</text>
+          <text x="300" y="162" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="10" font-weight="700" fill="#E53935">{3, 9}</text>
+          <!-- Pincer 2 -->
+          <rect x="346" y="137" width="52" height="30" rx="5" fill="#fde8e8" stroke="#E53935" stroke-width="2"/>
+          <text x="372" y="149" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="7" font-weight="700" fill="#6a7a96">Pincer 2</text>
+          <text x="372" y="162" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="10" font-weight="700" fill="#E53935">{5, 9}</text>
+          <!-- Convergence to elimination -->
+          <line x1="300" y1="167" x2="326" y2="188" stroke="#E53935" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <line x1="372" y1="167" x2="346" y2="188" stroke="#E53935" stroke-width="1.5" stroke-dasharray="3,2"/>
+          <!-- Elimination box -->
+          <rect x="314" y="190" width="44" height="24" rx="4" fill="#fee2e2" stroke="#E53935" stroke-width="2"/>
+          <text x="336" y="206" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="11" font-weight="700" fill="#E53935">✕ 9</text>
+          <!-- Label -->
+          <text x="336" y="228" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="8" fill="#6a7a96">Both pincers → Z eliminated</text>
+        </svg>
+      </div>
+
+      <!-- 16. Unique Rectangle -->
+      <div class="strat-card advanced">
+        <div class="strat-num">Strategy 16 · Advanced</div>
+        <div class="strat-name">Unique Rectangle</div>
+        <div class="strat-desc">A valid Sudoku has exactly one solution. If four cells form a rectangle spanning two rows, two columns, and two 3×3 boxes — all sharing the same two candidates — a "deadly pattern" would create two solutions. Use this to eliminate candidates or confirm placements that break the pattern.</div>
+        <!--
+          Two-panel: left 9×9 grid + right deadly pattern diagram.
+          Four cells: (1,3), (1,5), (4,3), (4,5) spanning boxes (0,1) and (1,1).
+          Three have {3,7}, fourth (4,5) has {3,7,9} — extra candidate breaks the pattern.
+        -->
+        <svg class="strat-svg" viewBox="0 0 400 254" width="100%" style="max-width:520px">
+          <defs>
+            <clipPath id="s16clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="s16glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s16clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Lighter shade for boxes (0,1) and (1,1) -->
+            <rect x="88" y="10" width="78" height="78" fill="#d8e2ee"/>
+            <rect x="88" y="88" width="78" height="78" fill="#d8e2ee"/>
+            <!-- White: rectangle cells -->
+            <rect x="88"  y="36"  width="26" height="26" fill="#ffffff"/>
+            <rect x="140" y="36"  width="26" height="26" fill="#ffffff"/>
+            <rect x="88"  y="114" width="26" height="26" fill="#ffffff"/>
+            <rect x="140" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box borders -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Pencil marks in rectangle cells -->
+            <!-- (1,3): {3,7} -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#E53935">
+              <text x="98" y="48">3</text>
+              <text x="106" y="48">7</text>
+            </g>
+            <!-- (1,5): {3,7} -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#E53935">
+              <text x="150" y="48">3</text>
+              <text x="158" y="48">7</text>
+            </g>
+            <!-- (4,3): {3,7} -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#E53935">
+              <text x="98" y="126">3</text>
+              <text x="106" y="126">7</text>
+            </g>
+            <!-- (4,5): {3,7,9} — extra candidate breaks pattern -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700">
+              <text x="147" y="122" fill="#E53935">3</text>
+              <text x="155" y="122" fill="#E53935">7</text>
+              <text x="151" y="135" fill="#388e3c">9</text>
+            </g>
+          </g>
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Red focus on three deadly cells -->
+          <rect x="88"  y="36"  width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s16glow)"/>
+          <rect x="140" y="36"  width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s16glow)"/>
+          <rect x="88"  y="114" width="26" height="26" fill="none" stroke="#E53935" stroke-width="3" filter="url(#s16glow)"/>
+          <!-- Green/blue accent on the safe fourth cell -->
+          <rect x="140" y="114" width="26" height="26" fill="none" stroke="#388e3c" stroke-width="3" filter="url(#s16glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="248" y1="127" x2="268" y2="127" stroke="#E53935" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="268,123 276,127 268,131" fill="#E53935" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: DEADLY PATTERN DIAGRAM ═══ -->
+          <text x="336" y="82" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="9" font-weight="700" fill="#E53935">Deadly pattern!</text>
+          <!-- Four cells in rectangle -->
+          <rect x="282" y="92"  width="42" height="34" rx="4" fill="#fee2e2" stroke="#E53935" stroke-width="2"/>
+          <rect x="348" y="92"  width="42" height="34" rx="4" fill="#fee2e2" stroke="#E53935" stroke-width="2"/>
+          <rect x="282" y="140" width="42" height="34" rx="4" fill="#fee2e2" stroke="#E53935" stroke-width="2"/>
+          <!-- Fourth cell — safe (green) -->
+          <rect x="348" y="140" width="42" height="34" rx="4" fill="#d4edda" stroke="#388e3c" stroke-width="2"/>
+          <!-- {3,7} in three cells -->
+          <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="11" font-weight="700" fill="#E53935">
+            <text x="303" y="114">{3,7}</text>
+            <text x="369" y="114">{3,7}</text>
+            <text x="303" y="162">{3,7}</text>
+          </g>
+          <!-- Fourth cell: extra candidate -->
+          <text x="369" y="155" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="9" font-weight="700" fill="#388e3c">{3,7,9}</text>
+          <text x="369" y="168" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="7" fill="#388e3c">breaks it</text>
+          <!-- Box boundary indicator -->
+          <line x1="282" y1="132" x2="390" y2="132" stroke="#34455e" stroke-width="2.5"/>
+          <!-- Labels -->
+          <text x="336" y="192" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="8" fill="#6a7a96">Extra candidate prevents</text>
+          <text x="336" y="204" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="8" fill="#6a7a96">two solutions</text>
+        </svg>
+      </div>
+
+      <!-- 17. Forcing Chains -->
+      <div class="strat-card advanced">
+        <div class="strat-num">Strategy 17 · Advanced</div>
+        <div class="strat-name">Forcing Chains</div>
+        <div class="strat-desc">Select a cell with exactly two candidates and follow two chains of logical consequences — one for each candidate. If both chains lead to the same conclusion for some other cell, that conclusion is confirmed true. The most powerful general technique but also the most demanding to execute.</div>
+        <!--
+          Two-panel: left 9×9 grid + right bifurcation logic diagram.
+          Start cell (4,4): {4,5}. Both paths lead to B=7 at (2,7).
+        -->
+        <svg class="strat-svg" viewBox="0 0 400 254" width="100%" style="max-width:520px">
+          <defs>
+            <clipPath id="s17clip"><rect x="10" y="10" width="234" height="234" rx="7"/></clipPath>
+            <filter id="s17glow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <rect width="400" height="254" fill="#f4f6fa"/>
+
+          <!-- ═══ LEFT GRID ═══ -->
+          <g clip-path="url(#s17clip)">
+            <rect x="10" y="10" width="234" height="234" fill="#b8c5d8"/>
+            <!-- Lighter shade for center box (1,1) -->
+            <rect x="88" y="88" width="78" height="78" fill="#d8e2ee"/>
+            <!-- White: start cell (4,4) -->
+            <rect x="114" y="114" width="26" height="26" fill="#ffffff"/>
+            <!-- Green: conclusion cell (2,7) -->
+            <rect x="192" y="62" width="26" height="26" fill="#d4edda"/>
+            <!-- Thin cell borders -->
+            <g stroke="#8a9ab8" stroke-width="0.5" opacity="0.7">
+              <line x1="36"  y1="10" x2="36"  y2="244"/>
+              <line x1="62"  y1="10" x2="62"  y2="244"/>
+              <line x1="114" y1="10" x2="114" y2="244"/>
+              <line x1="140" y1="10" x2="140" y2="244"/>
+              <line x1="192" y1="10" x2="192" y2="244"/>
+              <line x1="218" y1="10" x2="218" y2="244"/>
+              <line x1="10" y1="36"  x2="244" y2="36"/>
+              <line x1="10" y1="62"  x2="244" y2="62"/>
+              <line x1="10" y1="114" x2="244" y2="114"/>
+              <line x1="10" y1="140" x2="244" y2="140"/>
+              <line x1="10" y1="192" x2="244" y2="192"/>
+              <line x1="10" y1="218" x2="244" y2="218"/>
+            </g>
+            <!-- Thick box borders -->
+            <line x1="88"  y1="10" x2="88"  y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="166" y1="10" x2="166" y2="244" stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="88"  x2="244" y2="88"  stroke="#34455e" stroke-width="2"/>
+            <line x1="10" y1="166" x2="244" y2="166" stroke="#34455e" stroke-width="2"/>
+            <!-- Pencil marks in start cell: {4,5} -->
+            <g text-anchor="middle" font-family="Montserrat,sans-serif" font-size="6" font-weight="700" fill="#E53935">
+              <text x="124" y="126">4</text>
+              <text x="132" y="126">5</text>
+            </g>
+            <!-- Conclusion cell: confirmed 7 -->
+            <text x="205" y="80" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="14" font-weight="800" fill="#388e3c">7</text>
+          </g>
+          <rect x="10" y="10" width="234" height="234" fill="none" stroke="#34455e" stroke-width="2.5" rx="7"/>
+          <!-- Red focus on start cell -->
+          <rect x="114" y="114" width="26" height="26" fill="none" stroke="#E53935" stroke-width="3.5" filter="url(#s17glow)"/>
+          <!-- Green focus on conclusion cell -->
+          <rect x="192" y="62" width="26" height="26" fill="none" stroke="#388e3c" stroke-width="3" filter="url(#s17glow)"/>
+
+          <!-- Connecting arrow -->
+          <line x1="248" y1="127" x2="268" y2="127" stroke="#E53935" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.5"/>
+          <polygon points="268,123 276,127 268,131" fill="#E53935" opacity="0.5"/>
+
+          <!-- ═══ RIGHT: BIFURCATION DIAGRAM ═══ -->
+          <!-- Start cell -->
+          <rect x="310" y="82" width="52" height="28" rx="5" fill="#fde8e8" stroke="#E53935" stroke-width="2"/>
+          <text x="336" y="93" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="7" font-weight="700" fill="#6a7a96">Start</text>
+          <text x="336" y="106" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="10" font-weight="700" fill="#E53935">{4, 5}</text>
+          <!-- Two branches -->
+          <line x1="322" y1="110" x2="300" y2="128" stroke="#856404" stroke-width="1.5"/>
+          <line x1="350" y1="110" x2="372" y2="128" stroke="#2196F3" stroke-width="1.5"/>
+          <!-- Path A: if 4 -->
+          <rect x="274" y="130" width="52" height="28" rx="4" fill="#fff9c4" stroke="#856404" stroke-width="1.5"/>
+          <text x="300" y="142" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="7" font-weight="700" fill="#856404">if 4 →</text>
+          <text x="300" y="154" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="9" font-weight="700" fill="#856404">B = 7</text>
+          <!-- Path B: if 5 -->
+          <rect x="346" y="130" width="52" height="28" rx="4" fill="#e3f2fd" stroke="#2196F3" stroke-width="1.5"/>
+          <text x="372" y="142" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="7" font-weight="700" fill="#2196F3">if 5 →</text>
+          <text x="372" y="154" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="9" font-weight="700" fill="#2196F3">B = 7</text>
+          <!-- Convergence lines -->
+          <line x1="300" y1="158" x2="326" y2="176" stroke="#856404" stroke-width="1.5"/>
+          <line x1="372" y1="158" x2="346" y2="176" stroke="#2196F3" stroke-width="1.5"/>
+          <!-- Conclusion box -->
+          <rect x="310" y="178" width="52" height="28" rx="5" fill="#d4edda" stroke="#388e3c" stroke-width="2"/>
+          <text x="336" y="190" text-anchor="middle" font-family="Montserrat,sans-serif" font-size="8" font-weight="700" fill="#388e3c">B = 7</text>
+          <text x="336" y="201" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="7" fill="#388e3c">confirmed</text>
+          <!-- Label -->
+          <text x="336" y="222" text-anchor="middle" font-family="Open Sans,sans-serif" font-size="8" fill="#6a7a96">Both paths → same result</text>
+        </svg>
+      </div>
+
+    </div><!-- #strat-advanced -->
+
+  </div><!-- #strategies-tab -->
+
+
+  <!-- ════════════════════════════════════
+       JAVASCRIPT — Game Logic
+  ════════════════════════════════════ -->
+  <script>
+  'use strict';
+
+  /* ── State ──────────────────────────────────────── */
+  let puzzle      = [];      // 81 cells: 0=empty, 1-9=given
+  let solution    = [];      // 81 cells: complete solution
+  let userGrid    = [];      // 81 cells: user-entered values
+  let notes       = [];      // 81 Sets: candidate numbers per cell
+  let errorCells  = new Set();
+  let moveHistory = [];
+
+  let selectedCell = -1;
+  let hintsUsed    = 0;
+  let notesMode    = false;
+  let difficulty   = 'easy';
+
+  let timerInterval = null;
+  let timerSeconds  = 0;
+
+  /* ── Utilities ──────────────────────────────────── */
+  function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = (Math.random() * (i + 1)) | 0;
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function rnd(n) { return (Math.random() * n) | 0; }
+
+  /* ── Puzzle Generation (backtracking) ──────────── */
+  function isValid(g, idx, n) {
+    const r = (idx / 9) | 0;
+    const c = idx % 9;
+    const b = ((r / 3) | 0) * 3 + ((c / 3) | 0);
+    for (let k = 0; k < 9; k++) {
+      if (g[r * 9 + k] === n)            return false; // row
+      if (g[k * 9 + c] === n)            return false; // col
+      const br = ((b / 3) | 0) * 3 + ((k / 3) | 0);
+      const bc = (b % 3) * 3 + (k % 3);
+      if (g[br * 9 + bc] === n)          return false; // box
+    }
+    return true;
+  }
+
+  function fillGrid(g) {
+    const i = g.indexOf(0);
+    if (i === -1) return true;
+    for (const n of shuffle([1,2,3,4,5,6,7,8,9])) {
+      if (isValid(g, i, n)) {
+        g[i] = n;
+        if (fillGrid(g)) return true;
+        g[i] = 0;
+      }
+    }
+    return false;
+  }
+
+  function generatePuzzle(diff) {
+    const sol = new Array(81).fill(0);
+    fillGrid(sol);
+
+    const clues = diff === 'easy'   ? 46 + rnd(5) :
+                  diff === 'medium' ? 32 + rnd(5) :
+                                      25 + rnd(4);
+
+    const puz = [...sol];
+    const positions = shuffle([...Array(81).keys()]);
+    let removed = 0;
+
+    for (const pos of positions) {
+      if (81 - removed <= clues) break;
+      puz[pos] = 0;
+      removed++;
+    }
+
+    return { puzzle: puz, solution: sol };
+  }
+
+  /* ── Board DOM ──────────────────────────────────── */
+  function buildBoard() {
+    const board = document.getElementById('board');
+    board.innerHTML = '';
+    for (let i = 0; i < 81; i++) {
+      const r = (i / 9) | 0;
+      const c = i % 9;
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.i = i;
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.addEventListener('click', () => selectCell(i));
+      board.appendChild(cell);
+    }
+  }
+
+  function renderBoard() {
+    const cells = document.querySelectorAll('.cell');
+    const selVal = selectedCell >= 0
+      ? (puzzle[selectedCell] || userGrid[selectedCell])
+      : 0;
+
+    cells.forEach((cell, i) => {
+      const r = (i / 9) | 0;
+      const c = i % 9;
+      const isGiven = puzzle[i] !== 0;
+      const val = isGiven ? puzzle[i] : userGrid[i];
+      const note = notes[i];
+
+      // Reset classes (keep data- attrs)
+      cell.className = 'cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+
+      if (isGiven)                        cell.classList.add('given');
+      if (i === selectedCell)             cell.classList.add('selected');
+      if (!isGiven && errorCells.has(i))  cell.classList.add('error');
+
+      if (selVal && i !== selectedCell) {
+        const cv = puzzle[i] || userGrid[i];
+        if (cv === selVal)                cell.classList.add('same-num');
+      }
+
+      // Content
+      if (val) {
+        cell.innerHTML = `<span class="val">${val}</span>`;
+      } else if (note.size > 0) {
+        let html = '<div class="notes-grid">';
+        for (let n = 1; n <= 9; n++) {
+          html += `<span class="note">${note.has(n) ? n : ''}</span>`;
+        }
+        html += '</div>';
+        cell.innerHTML = html;
+      } else {
+        cell.innerHTML = '';
+      }
+    });
+  }
+
+  /* ── Interaction ────────────────────────────────── */
+  function selectCell(i) {
+    selectedCell = i;
+    renderBoard();
+  }
+
+  function inputNum(n) {
+    if (selectedCell < 0) return;
+    if (puzzle[selectedCell] !== 0) return; // given cell
+
+    if (notesMode) {
+      // Toggle candidate note
+      const note = notes[selectedCell];
+      if (note.has(n)) note.delete(n);
+      else              note.add(n);
+      userGrid[selectedCell] = 0;
+    } else {
+      // Record for undo
+      moveHistory.push({
+        i: selectedCell,
+        prevVal:   userGrid[selectedCell],
+        prevNotes: new Set(notes[selectedCell])
+      });
+      // Toggle: clicking the same number again clears it
+      userGrid[selectedCell] = userGrid[selectedCell] === n ? 0 : n;
+      notes[selectedCell].clear();
+    }
+
+    errorCells.clear();
+    renderBoard();
+    checkWin();
+  }
+
+  function deleteSelected() {
+    if (selectedCell < 0) return;
+    if (puzzle[selectedCell] !== 0) return;
+    if (notesMode) {
+      notes[selectedCell].clear();
+    } else {
+      moveHistory.push({
+        i: selectedCell,
+        prevVal:   userGrid[selectedCell],
+        prevNotes: new Set(notes[selectedCell])
+      });
+      userGrid[selectedCell] = 0;
+      notes[selectedCell].clear();
+    }
+    errorCells.clear();
+    renderBoard();
+  }
+
+  function undo() {
+    if (moveHistory.length === 0) return;
+    const m = moveHistory.pop();
+    userGrid[m.i] = m.prevVal;
+    notes[m.i]    = m.prevNotes;
+    errorCells.clear();
+    renderBoard();
+  }
+
+  function checkErrors() {
+    errorCells.clear();
+    for (let i = 0; i < 81; i++) {
+      if (userGrid[i] && userGrid[i] !== solution[i]) {
+        errorCells.add(i);
+      }
+    }
+    renderBoard();
+  }
+
+  function useHint() {
+    if (hintsUsed >= 3) return;
+
+    // Find an empty cell (not given, not filled correctly yet)
+    const empties = [];
+    for (let i = 0; i < 81; i++) {
+      if (puzzle[i] === 0 && userGrid[i] !== solution[i]) empties.push(i);
+    }
+    if (empties.length === 0) return;
+
+    const i = empties[rnd(empties.length)];
+    userGrid[i] = solution[i];
+    notes[i].clear();
+    hintsUsed++;
+    errorCells.clear();
+
+    const countEl = document.getElementById('hint-count');
+    countEl.textContent = 3 - hintsUsed;
+    if (hintsUsed >= 3) {
+      document.getElementById('hint-btn').disabled = true;
+    }
+
+    renderBoard();
+    checkWin();
+  }
+
+  function toggleNotes() {
+    notesMode = !notesMode;
+    document.getElementById('notes-btn').classList.toggle('active', notesMode);
+  }
+
+  /* ── Timer ──────────────────────────────────────── */
+  function formatTime(s) {
+    const m = (s / 60) | 0;
+    const sec = s % 60;
+    return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    timerSeconds = 0;
+    document.getElementById('timer').textContent = '00:00';
+    timerInterval = setInterval(() => {
+      timerSeconds++;
+      document.getElementById('timer').textContent = formatTime(timerSeconds);
+    }, 1000);
+  }
+
+  /* ── Win detection ──────────────────────────────── */
+  function checkWin() {
+    for (let i = 0; i < 81; i++) {
+      const v = puzzle[i] || userGrid[i];
+      if (!v || v !== solution[i]) return;
+    }
+    // All cells correct!
+    clearInterval(timerInterval);
+    document.getElementById('win-time').textContent = formatTime(timerSeconds);
+    document.getElementById('win-overlay').classList.remove('hidden');
+  }
+
+  function dismissWin() {
+    document.getElementById('win-overlay').classList.add('hidden');
+    newGame();
+  }
+
+  /* ── New Game ───────────────────────────────────── */
+  function updateDiffButtons() {
+    ['easy','medium','hard'].forEach(d => {
+      document.getElementById('btn-' + d).classList.toggle('active', d === difficulty);
+    });
+  }
+
+  function newGame(diff) {
+    if (diff) difficulty = diff;
+    const { puzzle: p, solution: s } = generatePuzzle(difficulty);
+    puzzle      = p;
+    solution    = s;
+    userGrid    = new Array(81).fill(0);
+    notes       = Array.from({ length: 81 }, () => new Set());
+    errorCells  = new Set();
+    moveHistory = [];
+    selectedCell = -1;
+    hintsUsed    = 0;
+    notesMode    = false;
+
+    document.getElementById('notes-btn').classList.remove('active');
+    document.getElementById('hint-count').textContent = '3';
+    document.getElementById('hint-btn').disabled = false;
+
+    updateDiffButtons();
+    startTimer();
+    renderBoard();
+  }
+
+  /* ── Keyboard input ─────────────────────────────── */
+  document.addEventListener('keydown', e => {
+    // Number keys 1-9
+    if (e.key >= '1' && e.key <= '9') {
+      inputNum(parseInt(e.key));
+      return;
+    }
+    // Delete / Backspace: clear cell
+    if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') {
+      deleteSelected();
+      return;
+    }
+    // Arrow keys: move selection
+    if (selectedCell >= 0 && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+      let r = (selectedCell / 9) | 0;
+      let c = selectedCell % 9;
+      if (e.key === 'ArrowUp')    r = Math.max(0, r - 1);
+      if (e.key === 'ArrowDown')  r = Math.min(8, r + 1);
+      if (e.key === 'ArrowLeft')  c = Math.max(0, c - 1);
+      if (e.key === 'ArrowRight') c = Math.min(8, c + 1);
+      selectCell(r * 9 + c);
+    }
+    // N key: toggle notes
+    if (e.key === 'n' || e.key === 'N') toggleNotes();
+  });
+
+  /* ── Tab switching ──────────────────────────────── */
+  function showTab(tab) {
+    document.getElementById('play-tab').classList.toggle('active', tab === 'play');
+    document.getElementById('strategies-tab').classList.toggle('active', tab === 'strategies');
+    document.getElementById('tab-play-btn').classList.toggle('active', tab === 'play');
+    document.getElementById('tab-strat-btn').classList.toggle('active', tab === 'strategies');
+  }
+
+  function showStratTab(level) {
+    ['basic','intermediate','advanced'].forEach(l => {
+      document.getElementById('strat-' + l).classList.toggle('active', l === level);
+      const btn = document.getElementById('stab-' + (l === 'basic' ? 'basic' : l === 'intermediate' ? 'inter' : 'adv'));
+      btn.className = 'strat-tab-btn' + (l === level ? ' active-' + l : '');
+    });
+  }
+
+  /* ── URL parameters ─────────────────────────────── */
+  function parseParams() {
+    const p = new URLSearchParams(window.location.search);
+    const lvl = p.get('level');
+    const tab = p.get('tab');
+    if (lvl && ['easy','medium','hard'].includes(lvl)) {
+      difficulty = lvl;
+    }
+    if (tab === 'strategies') {
+      // Show strategies tab after init
+      setTimeout(() => showTab('strategies'), 0);
+    }
+  }
+
+  /* ── Init ───────────────────────────────────────── */
+  buildBoard();
+  parseParams();
+  newGame();
+  </script>
+</body>
+</html>
