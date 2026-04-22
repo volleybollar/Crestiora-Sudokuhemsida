@@ -486,6 +486,140 @@
       max-width: 100%;
     }
 
+    /* ── PDF Strategy Guide CTA ──────────────────────
+       Two variants:
+       .pdf-cta.slim = banner above Basic/Intermediate/Advanced sub-tabs
+       .pdf-cta.full = big card at end of Advanced sub-tab
+    ───────────────────────────────────────────────── */
+    .pdf-cta {
+      background: linear-gradient(135deg, rgba(0,196,240,0.18) 0%, rgba(0,196,240,0.06) 100%);
+      border: 1px solid rgba(0,196,240,0.45);
+      border-radius: 14px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .pdf-cta.success {
+      background: linear-gradient(135deg, rgba(0,196,240,0.32) 0%, rgba(0,196,240,0.14) 100%);
+      border-color: var(--cyan);
+    }
+    .pdf-cta form { margin: 0; }
+    .pdf-cta input[type="email"] {
+      padding: 10px 14px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.08);
+      color: var(--white);
+      font-family: 'Open Sans', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .pdf-cta input[type="email"]::placeholder { color: rgba(255,255,255,0.4); }
+    .pdf-cta input[type="email"]:focus { border-color: var(--cyan); background: rgba(255,255,255,0.12); }
+    .pdf-cta button {
+      padding: 10px 20px;
+      background: var(--cyan);
+      color: var(--navy);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s, transform 0.1s;
+    }
+    .pdf-cta button:hover { background: #33d0f3; }
+    .pdf-cta button:active { transform: translateY(1px); }
+    .pdf-cta button:disabled { opacity: 0.6; cursor: wait; }
+    .pdf-cta .row-success {
+      display: none;
+      padding: 14px 16px;
+      background: rgba(0,196,240,0.2);
+      border: 1px solid rgba(0,196,240,0.6);
+      border-radius: 10px;
+      color: var(--white);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .pdf-cta.success .row-success { display: block; }
+    .pdf-cta.success .row-form    { display: none; }
+
+    /* Slim banner (top of Strategies tab) */
+    .pdf-cta.slim {
+      margin: 16px 16px 0 16px;
+      padding: 16px 18px;
+    }
+    .pdf-cta.slim .pdf-cta-body {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+    }
+    .pdf-cta.slim .pdf-cta-text { flex: 1 1 220px; min-width: 0; }
+    .pdf-cta.slim .pdf-cta-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 2px;
+    }
+    .pdf-cta.slim .pdf-cta-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .pdf-cta.slim form {
+      display: flex;
+      gap: 8px;
+      flex: 2 1 280px;
+      min-width: 0;
+    }
+    .pdf-cta.slim input[type="email"] { flex: 1; min-width: 0; }
+
+    /* Full card (end of Advanced sub-tab) */
+    .pdf-cta.full {
+      padding: 28px 24px;
+      margin: 24px 0 8px 0;
+      text-align: center;
+      border-radius: 16px;
+    }
+    .pdf-cta.full .pdf-cta-eyebrow {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 10px;
+    }
+    .pdf-cta.full .pdf-cta-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 10px;
+      line-height: 1.25;
+    }
+    .pdf-cta.full .pdf-cta-subtitle {
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 440px;
+      margin: 0 auto 20px auto;
+    }
+    .pdf-cta.full form {
+      display: flex;
+      gap: 8px;
+      max-width: 460px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+    }
+    .pdf-cta.full input[type="email"] {
+      flex: 1 1 220px;
+      min-width: 0;
+      padding: 12px 14px;
+      font-size: 0.95rem;
+    }
+    .pdf-cta.full button { padding: 12px 22px; font-size: 0.92rem; }
+
     /* ── Tablet tweaks (iPad etc) ────────────────── */
     @media (max-width: 768px) {
       /* Strategies cards: tighter padding */
@@ -640,6 +774,27 @@
        STRATEGIES TAB
   ════════════════════════════════════ -->
   <div id="strategies-tab" class="tab-panel">
+
+    <!-- ═══════ PDF Strategy Guide — Slim Banner (visible on all sub-tabs) ═══════ -->
+    <div class="pdf-cta slim" data-ml-form>
+      <div class="row-form">
+        <div class="pdf-cta-body">
+          <div class="pdf-cta-text">
+            <div class="pdf-cta-title">Get the complete Strategy Guide</div>
+            <div class="pdf-cta-subtitle">All 17 strategies in a free PDF — delivered to your inbox.</div>
+          </div>
+          <form action="https://assets.mailerlite.com/jsonp/2278442/forms/185294829222102300/subscribe" method="post">
+            <input type="email" name="fields[email]" placeholder="Your email" aria-label="Email" required>
+            <input type="hidden" name="ml-submit" value="1">
+            <input type="hidden" name="anticsrf" value="true">
+            <button type="submit">Send me the PDF</button>
+          </form>
+        </div>
+      </div>
+      <div class="row-success">
+        ✅ <strong>You're in!</strong> Check your inbox — the Strategy Guide is on its way to you right now.
+      </div>
+    </div>
 
     <!-- Sub-tabs: Basic | Intermediate | Advanced -->
     <div class="strat-tab-bar">
@@ -2411,6 +2566,26 @@
         </svg>
       </div>
 
+      <!-- ═══════ PDF Strategy Guide — Full CTA (bottom of Advanced) ═══════ -->
+      <div class="pdf-cta full" data-ml-form>
+        <div class="row-form">
+          <div class="pdf-cta-eyebrow">The Complete Sudoku Strategy Guide</div>
+          <div class="pdf-cta-title">Loved these advanced strategies? Get the full PDF.</div>
+          <div class="pdf-cta-subtitle">
+            All 17 strategies — beginner to advanced — in one printable guide with visual examples. Free, delivered to your inbox.
+          </div>
+          <form action="https://assets.mailerlite.com/jsonp/2278442/forms/185294829222102300/subscribe" method="post">
+            <input type="email" name="fields[email]" placeholder="Your email address" aria-label="Email" required>
+            <input type="hidden" name="ml-submit" value="1">
+            <input type="hidden" name="anticsrf" value="true">
+            <button type="submit">Send me the PDF</button>
+          </form>
+        </div>
+        <div class="row-success">
+          ✅ <strong>Almost there!</strong> Check your inbox to confirm your email — the PDF arrives right after you click confirm.
+        </div>
+      </div>
+
     </div><!-- #strat-advanced -->
 
   </div><!-- #strategies-tab -->
@@ -2783,6 +2958,40 @@
   buildBoard();
   parseParams();
   newGame();
+
+  /* ── PDF Strategy Guide form — MailerLite submit ──
+     Submits email to MailerLite via fetch (no-cors so browser
+     can't read response, but POST goes through).
+     On submit: shows success state on BOTH forms (slim banner +
+     full card) so user sees confirmation wherever they are. */
+  document.querySelectorAll('.pdf-cta[data-ml-form] form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const button = form.querySelector('button[type="submit"]');
+      const originalText = button.textContent;
+      button.disabled = true;
+      button.textContent = 'Sending…';
+
+      const body = new URLSearchParams();
+      new FormData(form).forEach((v, k) => body.append(k, v));
+
+      fetch(form.action, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+      }).then(() => {
+        // Flip both CTA blocks into success state
+        document.querySelectorAll('.pdf-cta[data-ml-form]').forEach(cta => {
+          cta.classList.add('success');
+        });
+      }).catch(() => {
+        button.disabled = false;
+        button.textContent = originalText;
+        alert('Something went wrong. Please try again in a moment.');
+      });
+    });
+  });
   </script>
 </body>
 </html>
