@@ -524,6 +524,13 @@
 
     <!-- Decorative sudoku grid (right side, ~10% opacity) -->
     <svg class="hero-grid-svg" viewBox="0 0 360 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Rounded clip mask: everything inside the <g> gets clipped to this shape -->
+      <defs>
+        <clipPath id="hero-grid-clip">
+          <rect x="0" y="0" width="360" height="360" rx="12" ry="12"/>
+        </clipPath>
+      </defs>
+      <g clip-path="url(#hero-grid-clip)">
       <!-- Subtle alternating box fills, cream-toned -->
       <rect x="0"   y="0"   width="120" height="120" fill="#1B2733" opacity="0.08"/>
       <rect x="120" y="0"   width="120" height="120" fill="#1B2733" opacity="0.04"/>
@@ -586,6 +593,9 @@
         <text x="180" y="308">8</text>
         <text x="340" y="308">5</text>
       </g>
+      </g>
+      <!-- Rounded outer border drawn on top so the curve looks intentional -->
+      <rect x="1" y="1" width="358" height="358" rx="12" ry="12" stroke="#1B2733" stroke-width="2" fill="none"/>
     </svg>
 
     <!-- Hero content -->
