@@ -1,0 +1,18 @@
+# Crestiora Books
+
+> Crestiora Books is a brain training studio founded by educators. It publishes professionally typeset sudoku and puzzle books on Amazon, and offers a free online sudoku game with an illustrated guide to 17 solving strategies. Tagline: "Brain training worth keeping. Designed by educators."
+
+Crestiora serves all ages — children, adults, and seniors. The puzzles are pure logic: no mathematics, no language skills, and no prior experience required.
+
+## Pages
+
+- [Home](https://crestiorabooks.com/): Overview of the free online sudoku game (easy, medium, hard) and Crestiora's printed sudoku books.
+- [Play Sudoku](https://crestiorabooks.com/play.html): Free browser sudoku with three difficulty levels, pencil notes, hints, error checking, and undo. No ads, no account required. Includes an illustrated reference of 17 sudoku solving strategies, from beginner techniques (Last Free Cell, Scanning & Cross-Hatching, Hidden Single) through intermediate (Naked Pair, Locked Candidates) to advanced (X-Wing, Swordfish, XY-Wing, Unique Rectangle, Forcing Chains).
+
+## Books
+
+- [Crestiora Books on Amazon](https://www.amazon.com/s?k=crestiora+books&i=stripbooks-intl-ship): Printed sudoku books in Easy, Medium, and Hard editions — professionally typeset for pencil-and-paper solving.
+
+## Contact
+
+- Email: hello@crestiorabooks.com

@@ -3,10 +3,102 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crestiora Books — Play Sudoku</title>
+
+  <!--
+    SEO — title & description shown in Google search results.
+    "?tab=..." and "?level=..." variants all point here via canonical.
+  -->
+  <title>Play Sudoku Online + 17 Solving Strategies | Crestiora Books</title>
+  <meta name="description" content="Play free sudoku in your browser — easy, medium, or hard. Learn 17 illustrated solving strategies, from Last Free Cell to X-Wing and Forcing Chains.">
+  <link rel="canonical" href="https://crestiorabooks.com/play.html">
+  <meta name="theme-color" content="#1B2733">
+
+  <!-- Favicons — Thought Ripples mark -->
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <!-- OPEN GRAPH + TWITTER — link previews when the page is shared -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Crestiora Books">
+  <meta property="og:title" content="Play Sudoku Online + 17 Solving Strategies">
+  <meta property="og:description" content="Free sudoku in your browser — easy, medium, or hard — plus an illustrated guide to 17 solving strategies.">
+  <meta property="og:url" content="https://crestiorabooks.com/play.html">
+  <meta property="og:image" content="https://crestiorabooks.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!--
+    FONTS — loaded async so text paints immediately with fallback fonts.
+    Only the weights actually used are requested (same URL as index.html
+    so the browser reuses the cached file between pages).
+  -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+
+  <!--
+    STRUCTURED DATA (JSON-LD) — tells Google and AI search engines that
+    this page is a free browser game plus a strategy reference.
+    The ItemList makes all 17 strategies machine-readable.
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://crestiorabooks.com/#organization",
+        "name": "Crestiora Books",
+        "url": "https://crestiorabooks.com/",
+        "logo": "https://crestiorabooks.com/apple-touch-icon.png",
+        "slogan": "Brain training worth keeping. Designed by educators.",
+        "email": "hello@crestiorabooks.com"
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://crestiorabooks.com/play.html#app",
+        "name": "Crestiora Sudoku",
+        "url": "https://crestiorabooks.com/play.html",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Any",
+        "browserRequirements": "Requires JavaScript",
+        "description": "Free online sudoku with three difficulty levels (easy, medium, hard), pencil notes, hints, error checking, and undo. No ads, no account required.",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "publisher": { "@id": "https://crestiorabooks.com/#organization" }
+      },
+      {
+        "@type": "ItemList",
+        "@id": "https://crestiorabooks.com/play.html#strategies",
+        "name": "Sudoku Solving Strategies",
+        "description": "17 illustrated sudoku solving strategies, from beginner to advanced.",
+        "numberOfItems": 17,
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1,  "name": "Last Free Cell" },
+          { "@type": "ListItem", "position": 2,  "name": "Scanning & Cross-Hatching" },
+          { "@type": "ListItem", "position": 3,  "name": "Last Possible Number" },
+          { "@type": "ListItem", "position": 4,  "name": "Hidden Single" },
+          { "@type": "ListItem", "position": 5,  "name": "Near-Complete Lines" },
+          { "@type": "ListItem", "position": 6,  "name": "Pencil Marks (Candidate Numbers)" },
+          { "@type": "ListItem", "position": 7,  "name": "Naked Single" },
+          { "@type": "ListItem", "position": 8,  "name": "Naked Pair" },
+          { "@type": "ListItem", "position": 9,  "name": "Hidden Pair" },
+          { "@type": "ListItem", "position": 10, "name": "Locked Candidates" },
+          { "@type": "ListItem", "position": 11, "name": "Naked Triple" },
+          { "@type": "ListItem", "position": 12, "name": "X-Wing" },
+          { "@type": "ListItem", "position": 13, "name": "Swordfish" },
+          { "@type": "ListItem", "position": 14, "name": "Skyscraper" },
+          { "@type": "ListItem", "position": 15, "name": "XY-Wing (Y-Wing)" },
+          { "@type": "ListItem", "position": 16, "name": "Unique Rectangle" },
+          { "@type": "ListItem", "position": 17, "name": "Forcing Chains" }
+        ]
+      }
+    ]
+  }
+  </script>
   <style>
     /*
       Crestiora — Play Sudoku
@@ -17,6 +109,17 @@
       minimal diff churn — values updated to brand tokens.
     */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Visually hidden but readable by search engines & screen readers */
+    .sr-only {
+      position: absolute;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
 
     :root {
       --bg:     #1B2733;   /* brand navy — page bg */
@@ -718,6 +821,9 @@
     <div class="wordmark">Crestiora Books</div>
   </header>
 
+  <!-- Page H1 — hidden visually, read by Google/AI crawlers and screen readers -->
+  <h1 class="sr-only">Play Sudoku Online — Free Puzzles and 17 Solving Strategies</h1>
+
   <!-- ════════════════════════════════════
        MAIN TAB BAR (Home | Play | Strategies)
   ════════════════════════════════════ -->
@@ -731,6 +837,15 @@
        PLAY TAB
   ════════════════════════════════════ -->
   <div id="play-tab" class="tab-panel active">
+
+    <h2 class="sr-only">Play Sudoku — Easy, Medium or Hard</h2>
+
+    <!-- Fallback message if JavaScript is disabled — the board is built by JS -->
+    <noscript>
+      <p style="max-width:520px;margin:24px auto;padding:16px 20px;background:#2E4057;border-radius:10px;text-align:center;color:#F6F3EE;font-size:0.95rem;">
+        The sudoku board needs JavaScript to run. Please enable JavaScript in your browser to play.
+      </p>
+    </noscript>
 
     <!-- Difficulty selector + timer -->
     <div class="diff-row">
@@ -824,6 +939,8 @@
   ════════════════════════════════════ -->
   <div id="strategies-tab" class="tab-panel">
 
+    <h2 class="sr-only">Sudoku Solving Strategies — Basic, Intermediate and Advanced</h2>
+
     <!-- ═══════ PDF Strategy Guide — Slim Banner (visible on all sub-tabs) ═══════ -->
     <div class="pdf-cta slim" data-ml-form>
       <div class="row-form">
@@ -858,7 +975,7 @@
       <!-- 1. Last Free Cell -->
       <div class="strat-card basic">
         <div class="strat-num">Strategy 1 · Basic</div>
-        <div class="strat-name">Last Free Cell</div>
+        <h3 class="strat-name">Last Free Cell</h3>
         <div class="strat-desc">If a row, column, or 3×3 box has eight of its nine cells filled, the remaining empty cell must contain the only missing digit. Always scan for nearly-complete units first — they are the quickest wins on the board.</div>
         <!--
           Full 9×9 grid. Cell = 30px, grid offset = 20px.
@@ -918,7 +1035,7 @@
       <!-- 2. Scanning & Cross-Hatching -->
       <div class="strat-card basic">
         <div class="strat-num">Strategy 2 · Basic</div>
-        <div class="strat-name">Scanning &amp; Cross-Hatching</div>
+        <h3 class="strat-name">Scanning &amp; Cross-Hatching</h3>
         <div class="strat-desc">Pick a digit — say 2. Find every row and column that already contains a 2 and mark them as blocked. Any cell at the intersection of two blocked lines is eliminated. If only one cell in a 3×3 box is left unblocked, that cell must hold your 2. Repeat for every digit 1–9.</div>
         <!--
           Two 9×9 grids side by side. Cell = 26px.
@@ -1042,7 +1159,7 @@
       <!-- 3. Last Possible Number -->
       <div class="strat-card basic">
         <div class="strat-num">Strategy 3 · Basic</div>
-        <div class="strat-name">Last Possible Number</div>
+        <h3 class="strat-name">Last Possible Number</h3>
         <div class="strat-desc">For any empty cell, check which digits already appear in its row, column, and 3×3 box. If together they cover eight of the nine digits, the one remaining digit must go in that cell.</div>
         <!--
           Full 9×9 grid. Cell = 30px, grid offset = 20px.
@@ -1115,7 +1232,7 @@
       <!-- 4. Hidden Single -->
       <div class="strat-card basic">
         <div class="strat-num">Strategy 4 · Basic</div>
-        <div class="strat-name">Hidden Single</div>
+        <h3 class="strat-name">Hidden Single</h3>
         <div class="strat-desc">A digit that can only be placed in one cell within a row, column, or box — even though that cell appears to have multiple options. For each unit, ask yourself: "Is there any digit that fits in only one cell here?" If yes, that digit belongs there immediately.</div>
         <!--
           Full 9×9 grid. Cell = 30px, grid offset = 20px.
@@ -1180,7 +1297,7 @@
       <!-- 5. Near-Complete Lines -->
       <div class="strat-card basic">
         <div class="strat-num">Strategy 5 · Basic</div>
-        <div class="strat-name">Near-Complete Lines</div>
+        <h3 class="strat-name">Near-Complete Lines</h3>
         <div class="strat-desc">When a row or column has only 2–3 empty cells remaining, list the missing digits. Then use constraints from the intersecting rows, columns, and boxes to determine which digit goes in which remaining cell.</div>
         <!--
           Full 9×9 grid. Cell = 30px, grid offset = 20px.
@@ -1256,7 +1373,7 @@
       <!-- 6. Pencil Marks -->
       <div class="strat-card intermediate">
         <div class="strat-num">Strategy 6 · Intermediate</div>
-        <div class="strat-name">Pencil Marks (Candidate Numbers)</div>
+        <h3 class="strat-name">Pencil Marks (Candidate Numbers)</h3>
         <div class="strat-desc">In each empty cell, write in small digits every number from 1–9 that is not already present in that cell's row, column, or box. Keep candidates updated as you place digits — erase any candidate in the same row, column, or box whenever a new digit is confirmed.</div>
         <!--
           Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right enlarged cell.
@@ -1362,7 +1479,7 @@
       <!-- 7. Naked Single -->
       <div class="strat-card intermediate">
         <div class="strat-num">Strategy 7 · Intermediate</div>
-        <div class="strat-name">Naked Single</div>
+        <h3 class="strat-name">Naked Single</h3>
         <div class="strat-desc">Any cell with only one candidate remaining must contain that digit. After setting up pencil marks, scan for naked singles continuously — they are the most immediate placements available and often trigger chain reactions.</div>
         <!--
           Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right enlarged cell.
@@ -1470,7 +1587,7 @@
       <!-- 8. Naked Pair (from brainstorm) -->
       <div class="strat-card intermediate">
         <div class="strat-num">Strategy 8 · Intermediate</div>
-        <div class="strat-name">Naked Pair</div>
+        <h3 class="strat-name">Naked Pair</h3>
         <div class="strat-desc">If two cells in the same row, column, or box contain exactly the same two candidates — and only those two — then those digits must occupy those two cells in some order. Eliminate both digits as candidates from every other cell in that unit.</div>
         <!--
           Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right enlarged pair view.
@@ -1567,7 +1684,7 @@
       <!-- 9. Hidden Pair -->
       <div class="strat-card intermediate">
         <div class="strat-num">Strategy 9 · Intermediate</div>
-        <div class="strat-name">Hidden Pair</div>
+        <h3 class="strat-name">Hidden Pair</h3>
         <div class="strat-desc">Two specific digits appear as candidates in exactly two cells within a unit, but those cells also contain other candidates. Because the two digits must occupy those two cells, remove all other candidates from those two cells — leaving only the pair.</div>
         <!--
           Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right enlarged pair view.
@@ -1676,7 +1793,7 @@
       <!-- 10. Locked Candidates -->
       <div class="strat-card intermediate">
         <div class="strat-num">Strategy 10 · Intermediate</div>
-        <div class="strat-name">Locked Candidates</div>
+        <h3 class="strat-name">Locked Candidates</h3>
         <div class="strat-desc">Type 1 (Pointing): if a digit's candidates within a 3×3 box all fall in the same row or column, eliminate that digit from all other cells in that row or column outside the box. Type 2 (Claiming): if a digit's candidates in a row or column all fall within one box, eliminate that digit from the rest of the box.</div>
         <!--
           Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right detail panel.
@@ -1781,7 +1898,7 @@
       <!-- 11. Naked Triple -->
       <div class="strat-card intermediate">
         <div class="strat-num">Strategy 11 · Intermediate</div>
-        <div class="strat-name">Naked Triple</div>
+        <h3 class="strat-name">Naked Triple</h3>
         <div class="strat-desc">Three cells in the same unit whose candidates together consist of only three digits — each cell may hold two or three of them. Those three digits must go into those three cells, so eliminate them from all other cells in the unit.</div>
         <!--
           Two-panel: left 9×9 grid (cell=26px, offset 10,10) + right enlarged triple view.
@@ -1899,7 +2016,7 @@
       <!-- 12. X-Wing -->
       <div class="strat-card advanced">
         <div class="strat-num">Strategy 12 · Advanced</div>
-        <div class="strat-name">X-Wing</div>
+        <h3 class="strat-name">X-Wing</h3>
         <div class="strat-desc">Find a digit that appears as a candidate in exactly two cells in each of two different rows, where those cells fall in the same two columns. The four cells form a rectangle. The digit must occupy one diagonal pair or the other — eliminate that digit from all other cells in those two columns.</div>
         <!--
           Two-panel: left 9×9 grid + right rectangle diagram.
@@ -2011,7 +2128,7 @@
       <!-- 13. Swordfish -->
       <div class="strat-card advanced">
         <div class="strat-num">Strategy 13 · Advanced</div>
-        <div class="strat-name">Swordfish</div>
+        <h3 class="strat-name">Swordfish</h3>
         <div class="strat-desc">An extension of X-Wing using three rows and three columns. A digit appears in two or three cells per row, and all those cells are confined to the same three columns. The digit can be eliminated from all other cells in those three columns.</div>
         <!--
           Two-panel: left 9×9 grid + right dot-matrix pattern.
@@ -2169,7 +2286,7 @@
       <!-- 14. Skyscraper -->
       <div class="strat-card advanced">
         <div class="strat-num">Strategy 14 · Advanced</div>
-        <div class="strat-name">Skyscraper</div>
+        <h3 class="strat-name">Skyscraper</h3>
         <div class="strat-desc">A digit appears in exactly two cells in each of two rows. The two pairs share one column — the "base." The other two cells (the "roof") are in different columns. Any cell that shares a row, column, or box with both roof cells cannot contain that digit.</div>
         <!--
           Two-panel: left 9×9 grid + right skyscraper structure diagram.
@@ -2296,7 +2413,7 @@
       <!-- 15. XY-Wing -->
       <div class="strat-card advanced">
         <div class="strat-num">Strategy 15 · Advanced</div>
-        <div class="strat-name">XY-Wing (Y-Wing)</div>
+        <h3 class="strat-name">XY-Wing (Y-Wing)</h3>
         <div class="strat-desc">Three cells, each with exactly two candidates, form a pattern: a pivot cell with candidates {X,Y}, and two pincer cells with candidates {X,Z} and {Y,Z}. The pivot shares a unit with each pincer. Any cell that shares a unit with both pincers cannot contain Z — because regardless of how the pivot resolves, one pincer will always produce Z.</div>
         <!--
           Two-panel: left 9×9 grid + right logic tree diagram.
@@ -2419,7 +2536,7 @@
       <!-- 16. Unique Rectangle -->
       <div class="strat-card advanced">
         <div class="strat-num">Strategy 16 · Advanced</div>
-        <div class="strat-name">Unique Rectangle</div>
+        <h3 class="strat-name">Unique Rectangle</h3>
         <div class="strat-desc">A valid Sudoku has exactly one solution. If four cells form a rectangle spanning two rows, two columns, and two 3×3 boxes — all sharing the same two candidates — a "deadly pattern" would create two solutions. Use this to eliminate candidates or confirm placements that break the pattern.</div>
         <!--
           Two-panel: left 9×9 grid + right deadly pattern diagram.
@@ -2527,7 +2644,7 @@
       <!-- 17. Forcing Chains -->
       <div class="strat-card advanced">
         <div class="strat-num">Strategy 17 · Advanced</div>
-        <div class="strat-name">Forcing Chains</div>
+        <h3 class="strat-name">Forcing Chains</h3>
         <div class="strat-desc">Select a cell with exactly two candidates and follow two chains of logical consequences — one for each candidate. If both chains lead to the same conclusion for some other cell, that conclusion is confirmed true. The most powerful general technique but also the most demanding to execute.</div>
         <!--
           Two-panel: left 9×9 grid + right bifurcation logic diagram.

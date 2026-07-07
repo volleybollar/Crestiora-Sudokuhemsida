@@ -3,15 +3,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Crestiora Books — Sudoku</title>
+
+  <!--
+    SEO — title & description are what Google shows in search results.
+    Keep the primary keyword ("free online sudoku") early in both.
+  -->
+  <title>Free Online Sudoku — Easy, Medium &amp; Hard | Crestiora Books</title>
+  <meta name="description" content="Free online sudoku from Crestiora Books — easy, medium, and hard puzzles with notes, hints, and error checking. Pure logic, no ads. Designed by educators.">
+  <!-- Canonical: tells search engines this URL is the "official" one (avoids duplicates like ?utm=...) -->
+  <link rel="canonical" href="https://crestiorabooks.com/">
+  <!-- Browser UI color on mobile (matches brand navy) -->
+  <meta name="theme-color" content="#1B2733">
+
+  <!-- Favicons — Thought Ripples mark. SVG for modern browsers, PNG fallbacks. -->
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <!--
+    OPEN GRAPH + TWITTER — controls how the page looks when shared
+    (LinkedIn, Facebook, X, iMessage, Slack…) and helps AI assistants
+    understand what the page is about.
+  -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Crestiora Books">
+  <meta property="og:title" content="Free Online Sudoku — Easy, Medium &amp; Hard">
+  <meta property="og:description" content="Three difficulty levels. Pure logic. No ads. Brain training worth keeping, designed by educators.">
+  <meta property="og:url" content="https://crestiorabooks.com/">
+  <meta property="og:image" content="https://crestiorabooks.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
 
   <!--
     FONTS — Playfair Display (display) + Inter (body)
     Following Crestiora brand guide §3.3 (typography).
+    Loaded async (media="print" → "all" on load) so text renders
+    immediately with fallback fonts instead of blocking first paint.
+    Only the weights actually used are requested.
   -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+
+  <!--
+    STRUCTURED DATA (JSON-LD) — machine-readable description of the site
+    for Google rich results and AI search engines (ChatGPT, Perplexity, Claude…).
+  -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://crestiorabooks.com/#organization",
+        "name": "Crestiora Books",
+        "url": "https://crestiorabooks.com/",
+        "logo": "https://crestiorabooks.com/apple-touch-icon.png",
+        "slogan": "Brain training worth keeping. Designed by educators.",
+        "description": "Crestiora Books is a brain training studio founded by educators. It publishes professionally typeset sudoku and puzzle books on Amazon and offers a free online sudoku game with an illustrated strategy guide.",
+        "email": "hello@crestiorabooks.com"
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://crestiorabooks.com/#website",
+        "url": "https://crestiorabooks.com/",
+        "name": "Crestiora Books",
+        "publisher": { "@id": "https://crestiorabooks.com/#organization" }
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://crestiorabooks.com/#webpage",
+        "url": "https://crestiorabooks.com/",
+        "name": "Free Online Sudoku — Easy, Medium & Hard | Crestiora Books",
+        "description": "Free online sudoku with three difficulty levels, pencil notes, hints, and error checking. No ads.",
+        "isPartOf": { "@id": "https://crestiorabooks.com/#website" },
+        "about": { "@id": "https://crestiorabooks.com/#organization" }
+      }
+    ]
+  }
+  </script>
 
   <style>
     /* ══════════════════════════════════════════════
@@ -629,25 +702,25 @@
 
         <div class="feat-card fade-in">
           <span class="feat-icon">⏱</span>
-          <div class="feat-title">Timer &amp; Notes</div>
+          <h3 class="feat-title">Timer &amp; Notes</h3>
           <div class="feat-desc">Track your solve time and use pencil marks to manage candidate numbers — exactly like solving on paper, but without the eraser.</div>
         </div>
 
         <div class="feat-card fade-in">
           <span class="feat-icon">💡</span>
-          <div class="feat-title">3 Hints per Game</div>
+          <h3 class="feat-title">3 Hints per Game</h3>
           <div class="feat-desc">Stuck? Use one of your three hints to reveal a correct cell and get back on track, without spoiling the rest of the puzzle.</div>
         </div>
 
         <div class="feat-card fade-in">
           <span class="feat-icon">✓</span>
-          <div class="feat-title">Error Check</div>
+          <h3 class="feat-title">Error Check</h3>
           <div class="feat-desc">Instantly highlight any incorrect entries so you can catch and correct mistakes before they cascade into bigger problems.</div>
         </div>
 
         <div class="feat-card fade-in">
           <span class="feat-icon">↩</span>
-          <div class="feat-title">Undo Moves</div>
+          <h3 class="feat-title">Undo Moves</h3>
           <div class="feat-desc">Made a wrong entry? Step back through your move history one step at a time — as many times as you need.</div>
         </div>
 
@@ -671,19 +744,19 @@
       <div class="levels-grid">
 
         <a href="play.html?level=easy" class="level-card easy fade-in">
-          <div class="level-label">Easy</div>
+          <h3 class="level-label">Easy</h3>
           <div class="level-desc">More clues, clear patterns. Perfect for building confidence and learning the fundamentals of sudoku logic.</div>
           <div class="level-clues">~46–50 given digits</div>
         </a>
 
         <a href="play.html?level=medium" class="level-card medium fade-in">
-          <div class="level-label">Medium</div>
+          <h3 class="level-label">Medium</h3>
           <div class="level-desc">Fewer clues. Requires logical deduction and some forward planning to work through completely.</div>
           <div class="level-clues">~32–36 given digits</div>
         </a>
 
         <a href="play.html?level=hard" class="level-card hard fade-in">
-          <div class="level-label">Hard</div>
+          <h3 class="level-label">Hard</h3>
           <div class="level-desc">Minimal clues. Demands advanced techniques and careful candidate analysis from start to finish.</div>
           <div class="level-clues">~25–28 given digits</div>
         </a>
@@ -720,7 +793,7 @@
         <span class="eyebrow">Physical Books</span>
         <h2 class="sec-title">Crestiora Books</h2>
         <p class="brand-sub">Prefer pencil and paper? Our printed sudoku books are available on Amazon — same three difficulty levels, professionally typeset, and perfect for travel, home, or as a gift.</p>
-        <a href="https://www.amazon.com/s?k=crestiora+books&i=stripbooks-intl-ship&crid=1VXC4VQ4S0OZQ&sprefix=crestiora+books%2Cstripbooks-intl-ship%2C204&ref=nb_sb_noss_1" class="btn-primary" target="_blank" rel="noopener">View on Amazon</a>
+        <a href="https://www.amazon.com/s?k=crestiora+books&i=stripbooks-intl-ship" class="btn-primary" target="_blank" rel="noopener">View on Amazon</a>
       </div>
     </div>
   </section>
