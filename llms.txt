@@ -1,13 +1,14 @@
 # Crestiora Books
 
-> Crestiora Books is a brain training studio founded by educators. It publishes professionally typeset sudoku and puzzle books on Amazon, and offers a free online sudoku game with an illustrated guide to 17 solving strategies. Tagline: "Brain training worth keeping. Designed by educators."
+> Crestiora Books is a brain training studio founded by educators. It publishes professionally typeset puzzle books on Amazon, and offers free online brain training games — sudoku (with an illustrated guide to 17 solving strategies) and word search. Tagline: "Brain training worth keeping. Designed by educators."
 
-Crestiora serves all ages — children, adults, and seniors. The puzzles are pure logic: no mathematics, no language skills, and no prior experience required.
+Crestiora serves all ages — children, adults, and seniors. The games train different faculties: sudoku builds working memory and systematic reasoning; word search builds visual attention and vocabulary. No prior experience required.
 
 ## Pages
 
-- [Home](https://crestiorabooks.com/): Overview of the free online sudoku game (easy, medium, hard) and Crestiora's printed sudoku books.
+- [Home](https://crestiorabooks.com/): Overview of the studio's free online brain training games (sudoku and word search) and Crestiora's printed puzzle books.
 - [Play Sudoku](https://crestiorabooks.com/play.html): Free browser sudoku with three difficulty levels, pencil notes, hints, error checking, and undo. No ads, no account required. Includes an illustrated reference of 17 sudoku solving strategies, from beginner techniques (Last Free Cell, Scanning & Cross-Hatching, Hidden Single) through intermediate (Naked Pair, Locked Candidates) to advanced (X-Wing, Swordfish, XY-Wing, Unique Rectangle, Forcing Chains).
+- [Play Word Search](https://crestiorabooks.com/wordsearch.html): Free browser word search with five themes — garden, animals, sports, nature, and car brands — each hiding ten words across, down, diagonally, and in reverse. Each found word is marked in its own color, any word in the list can be tapped for a brief location hint, and every new grid is freshly generated. No ads, no account required.
 
 ## Books
 

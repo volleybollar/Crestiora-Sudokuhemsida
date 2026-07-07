@@ -6,10 +6,12 @@
 
   <!--
     SEO — title & description are what Google shows in search results.
-    Keep the primary keyword ("free online sudoku") early in both.
+    The home page is the studio hub ("brain training"); each game page
+    carries its own primary keyword (play.html = sudoku, wordsearch.html
+    = word search).
   -->
-  <title>Free Online Sudoku — Easy, Medium &amp; Hard | Crestiora Books</title>
-  <meta name="description" content="Free online sudoku from Crestiora Books — easy, medium, and hard puzzles with notes, hints, and error checking. Pure logic, no ads. Designed by educators.">
+  <title>Free Brain Training — Online Sudoku &amp; Word Search | Crestiora Books</title>
+  <meta name="description" content="Free online brain training from Crestiora Books — sudoku and word search, with more ways to train on the way. Pure focus, no ads. Designed by educators.">
   <!-- Canonical: tells search engines this URL is the "official" one (avoids duplicates like ?utm=...) -->
   <link rel="canonical" href="https://crestiorabooks.com/">
   <!-- Browser UI color on mobile (matches brand navy) -->
@@ -27,8 +29,8 @@
   -->
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Crestiora Books">
-  <meta property="og:title" content="Free Online Sudoku — Easy, Medium &amp; Hard">
-  <meta property="og:description" content="Three difficulty levels. Pure logic. No ads. Brain training worth keeping, designed by educators.">
+  <meta property="og:title" content="Free Brain Training — Sudoku &amp; Word Search">
+  <meta property="og:description" content="Free online puzzles that train different parts of your thinking. No ads. Brain training worth keeping, designed by educators.">
   <meta property="og:url" content="https://crestiorabooks.com/">
   <meta property="og:image" content="https://crestiorabooks.com/og-image.png">
   <meta property="og:image:width" content="1200">
@@ -63,7 +65,7 @@
         "url": "https://crestiorabooks.com/",
         "logo": "https://crestiorabooks.com/apple-touch-icon.png",
         "slogan": "Brain training worth keeping. Designed by educators.",
-        "description": "Crestiora Books is a brain training studio founded by educators. It publishes professionally typeset sudoku and puzzle books on Amazon and offers a free online sudoku game with an illustrated strategy guide.",
+        "description": "Crestiora Books is a brain training studio founded by educators. It publishes professionally typeset puzzle books on Amazon and offers free online brain training games — sudoku and word search — with an illustrated sudoku strategy guide.",
         "email": "hello@crestiorabooks.com"
       },
       {
@@ -77,8 +79,8 @@
         "@type": "WebPage",
         "@id": "https://crestiorabooks.com/#webpage",
         "url": "https://crestiorabooks.com/",
-        "name": "Free Online Sudoku — Easy, Medium & Hard | Crestiora Books",
-        "description": "Free online sudoku with three difficulty levels, pencil notes, hints, and error checking. No ads.",
+        "name": "Free Brain Training — Online Sudoku & Word Search | Crestiora Books",
+        "description": "Free online brain training games: sudoku with three difficulty levels, and word search with themed grids. No ads.",
         "isPartOf": { "@id": "https://crestiorabooks.com/#website" },
         "about": { "@id": "https://crestiorabooks.com/#organization" }
       }
@@ -260,6 +262,7 @@
       position: relative;
       overflow: hidden;
       background:
+        radial-gradient(ellipse 50% 45% at 18% 45%, rgba(200,168,107,0.05) 0%, transparent 70%),
         radial-gradient(ellipse 60% 55% at 80% 50%, rgba(200,168,107,0.08) 0%, transparent 70%),
         var(--cream);
     }
@@ -273,6 +276,17 @@
       opacity: 0.10;
       pointer-events: none;
       width: min(380px, 32vw);
+    }
+
+    /* Decorative word search grid — left side, mirrored tilt, same faintness */
+    .hero-words-svg {
+      position: absolute;
+      left: 4%;
+      top: 50%;
+      transform: translateY(-50%) rotate(6deg);
+      opacity: 0.10;
+      pointer-events: none;
+      width: min(340px, 30vw);
     }
 
     .hero-content {
@@ -436,6 +450,26 @@
       letter-spacing: 0.02em;
     }
 
+    /* Game cards reuse the level-card look: two columns, slate top stripe,
+       navy labels. Difficulty colors stay reserved for difficulty. */
+    .levels-grid.games {
+      grid-template-columns: repeat(2, 1fr);
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    .level-card.game::before { background: var(--slate); }
+    .level-card.game .level-label { color: var(--navy); }
+
+    /* Quiet "more coming" line under the game cards */
+    .games-more {
+      text-align: center;
+      margin-top: 32px;
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1rem;
+      color: var(--text-light);
+    }
+
     /* ══════════════════════════════════════════════
        SUDOKU & THE BRAIN — editorial column
     ══════════════════════════════════════════════ */
@@ -554,7 +588,8 @@
 
       .features-grid { grid-template-columns: 1fr; }
       .levels-grid    { grid-template-columns: 1fr; gap: 14px; }
-      .hero-grid-svg  { display: none; }
+      .hero-grid-svg,
+      .hero-words-svg { display: none; }
 
       .site-header { padding: 16px 20px; }
     }
@@ -671,15 +706,56 @@
       <rect x="1" y="1" width="358" height="358" rx="12" ry="12" stroke="#1B2733" stroke-width="2" fill="none"/>
     </svg>
 
+    <!-- Decorative word search grid (left side, ~10% opacity).
+         Functionally accurate: FOCUS is ringed on the second row,
+         and MIND runs down the right-hand column. -->
+    <svg class="hero-words-svg" viewBox="0 0 360 360" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <clipPath id="hero-words-clip">
+          <rect x="0" y="0" width="360" height="360" rx="12" ry="12"/>
+        </clipPath>
+      </defs>
+      <g clip-path="url(#hero-words-clip)">
+        <!-- Soft base tint -->
+        <rect x="0" y="0" width="360" height="360" fill="#1B2733" opacity="0.04"/>
+        <!-- Thin cell lines — 6×6 grid, 60px cells -->
+        <g stroke="#1B2733" stroke-width="0.5" opacity="0.6">
+          <line x1="60"  y1="0" x2="60"  y2="360"/>
+          <line x1="120" y1="0" x2="120" y2="360"/>
+          <line x1="180" y1="0" x2="180" y2="360"/>
+          <line x1="240" y1="0" x2="240" y2="360"/>
+          <line x1="300" y1="0" x2="300" y2="360"/>
+          <line x1="0" y1="60"  x2="360" y2="60"/>
+          <line x1="0" y1="120" x2="360" y2="120"/>
+          <line x1="0" y1="180" x2="360" y2="180"/>
+          <line x1="0" y1="240" x2="360" y2="240"/>
+          <line x1="0" y1="300" x2="360" y2="300"/>
+        </g>
+        <!-- Letters — one per cell, centered -->
+        <g font-family="Inter,sans-serif" font-weight="700" font-size="20" text-anchor="middle" fill="#1B2733">
+          <text x="30" y="37">K</text><text x="90" y="37">E</text><text x="150" y="37">P</text><text x="210" y="37">A</text><text x="270" y="37">G</text><text x="330" y="37">R</text>
+          <text x="30" y="97">F</text><text x="90" y="97">O</text><text x="150" y="97">C</text><text x="210" y="97">U</text><text x="270" y="97">S</text><text x="330" y="97">T</text>
+          <text x="30" y="157">B</text><text x="90" y="157">R</text><text x="150" y="157">T</text><text x="210" y="157">E</text><text x="270" y="157">V</text><text x="330" y="157">M</text>
+          <text x="30" y="217">A</text><text x="90" y="217">H</text><text x="150" y="217">U</text><text x="210" y="217">Z</text><text x="270" y="217">Q</text><text x="330" y="217">I</text>
+          <text x="30" y="277">W</text><text x="90" y="277">D</text><text x="150" y="277">S</text><text x="210" y="277">O</text><text x="270" y="277">E</text><text x="330" y="277">N</text>
+          <text x="30" y="337">C</text><text x="90" y="337">T</text><text x="150" y="337">A</text><text x="210" y="337">L</text><text x="270" y="337">Y</text><text x="330" y="337">D</text>
+        </g>
+        <!-- Found-word capsule around FOCUS (row 2, columns 1–5) -->
+        <rect x="8" y="68" width="284" height="44" rx="22" stroke="#1B2733" stroke-width="2.5" fill="none"/>
+      </g>
+      <!-- Rounded outer border drawn on top so the curve looks intentional -->
+      <rect x="1" y="1" width="358" height="358" rx="12" ry="12" stroke="#1B2733" stroke-width="2" fill="none"/>
+    </svg>
+
     <!-- Hero content -->
     <div class="hero-content">
       <span class="eyebrow">Crestiora Books</span>
-      <h1 class="hero-h1">Train Your Brain<br>with Sudoku</h1>
+      <h1 class="hero-h1">Train Your Brain</h1>
       <p class="hero-tagline">Brain training worth keeping. Designed by educators.</p>
-      <p class="hero-sub">Three difficulty levels. Pure logic. No ads.</p>
+      <p class="hero-sub">Free online puzzles — sudoku and word search, with more ways to train on the way. No ads, no accounts.</p>
       <div class="hero-ctas">
-        <a href="play.html" class="btn-primary">Play Now</a>
-        <a href="play.html?tab=strategies" class="btn-outline">Strategies</a>
+        <a href="play.html" class="btn-primary">Play Sudoku</a>
+        <a href="wordsearch.html" class="btn-outline">Play Word Search</a>
       </div>
     </div>
 
@@ -701,27 +777,27 @@
       <div class="features-grid">
 
         <div class="feat-card fade-in">
-          <span class="feat-icon">⏱</span>
-          <h3 class="feat-title">Timer &amp; Notes</h3>
-          <div class="feat-desc">Track your solve time and use pencil marks to manage candidate numbers — exactly like solving on paper, but without the eraser.</div>
+          <span class="feat-icon">◎</span>
+          <h3 class="feat-title">No Ads, No Accounts</h3>
+          <div class="feat-desc">Nothing to sign up for and nothing sold between puzzles. Open the page, start thinking — the training is the whole product.</div>
+        </div>
+
+        <div class="feat-card fade-in">
+          <span class="feat-icon">✎</span>
+          <h3 class="feat-title">Designed by Educators</h3>
+          <div class="feat-desc">Every puzzle is built with pedagogical care — the right challenge at the right pace, whether it's your first grid or your thousandth.</div>
         </div>
 
         <div class="feat-card fade-in">
           <span class="feat-icon">💡</span>
-          <h3 class="feat-title">3 Hints per Game</h3>
-          <div class="feat-desc">Stuck? Use one of your three hints to reveal a correct cell and get back on track, without spoiling the rest of the puzzle.</div>
+          <h3 class="feat-title">Help That Teaches</h3>
+          <div class="feat-desc">Hints reveal just enough to keep you moving — a correct cell in sudoku, a brief pointer in word search — without spoiling the puzzle.</div>
         </div>
 
         <div class="feat-card fade-in">
           <span class="feat-icon">✓</span>
-          <h3 class="feat-title">Error Check</h3>
-          <div class="feat-desc">Instantly highlight any incorrect entries so you can catch and correct mistakes before they cascade into bigger problems.</div>
-        </div>
-
-        <div class="feat-card fade-in">
-          <span class="feat-icon">↩</span>
-          <h3 class="feat-title">Undo Moves</h3>
-          <div class="feat-desc">Made a wrong entry? Step back through your move history one step at a time — as many times as you need.</div>
+          <h3 class="feat-title">For Every Age</h3>
+          <div class="feat-desc">From a child's first word search to a daily hard sudoku — the same calm place to train, from young solvers to seniors.</div>
         </div>
 
       </div>
@@ -730,38 +806,36 @@
 
 
   <!-- ════════════════════════════════════════════════════
-       CHOOSE YOUR LEVEL — 3 CLICKABLE DIFFICULTY CARDS
+       CHOOSE YOUR TRAINING — ONE CARD PER GAME
+       Each game trains a different faculty; difficulty
+       choices live inside each game's own page.
   ════════════════════════════════════════════════════ -->
   <section class="levels-section">
     <div class="container">
 
       <div class="section-header fade-in">
-        <span class="eyebrow">Choose your level</span>
-        <h2 class="sec-title">Three ways in</h2>
-        <p class="sec-sub">Each level is carefully tuned to deliver the right challenge.</p>
+        <span class="eyebrow">Choose your training</span>
+        <h2 class="sec-title">Two games, two kinds of thinking</h2>
+        <p class="sec-sub">Sudoku trains logic and deduction. Word search trains attention and vocabulary. Different puzzles reach different parts of the mind.</p>
       </div>
 
-      <div class="levels-grid">
+      <div class="levels-grid games">
 
-        <a href="play.html?level=easy" class="level-card easy fade-in">
-          <h3 class="level-label">Easy</h3>
-          <div class="level-desc">More clues, clear patterns. Perfect for building confidence and learning the fundamentals of sudoku logic.</div>
-          <div class="level-clues">~46–50 given digits</div>
+        <a href="play.html" class="level-card game fade-in">
+          <h3 class="level-label">Sudoku</h3>
+          <div class="level-desc">Pure logic, step by step. Three difficulty levels — easy, medium, and hard — with pencil notes, hints, error checking, and an illustrated guide to 17 solving strategies.</div>
+          <div class="level-clues">Trains: working memory · systematic reasoning</div>
         </a>
 
-        <a href="play.html?level=medium" class="level-card medium fade-in">
-          <h3 class="level-label">Medium</h3>
-          <div class="level-desc">Fewer clues. Requires logical deduction and some forward planning to work through completely.</div>
-          <div class="level-clues">~32–36 given digits</div>
-        </a>
-
-        <a href="play.html?level=hard" class="level-card hard fade-in">
-          <h3 class="level-label">Hard</h3>
-          <div class="level-desc">Minimal clues. Demands advanced techniques and careful candidate analysis from start to finish.</div>
-          <div class="level-clues">~25–28 given digits</div>
+        <a href="wordsearch.html" class="level-card game fade-in">
+          <h3 class="level-label">Word Search</h3>
+          <div class="level-desc">Five themes — garden, animals, sports, nature, and car brands — each hiding ten words across, down, diagonally, and in reverse. Every found word keeps its own color, and any word can lend you a brief pointer.</div>
+          <div class="level-clues">Trains: visual attention · vocabulary</div>
         </a>
 
       </div>
+
+      <p class="games-more fade-in">More ways to train are on the way — the studio is growing.</p>
     </div>
   </section>
 
@@ -773,8 +847,8 @@
     <div class="container">
       <div class="brain-inner fade-in">
         <span class="eyebrow">Brain Training</span>
-        <h2 class="sec-title">Sudoku &amp; The Brain</h2>
-        <p class="brain-text">Sudoku is one of the world's most popular logic puzzles — and for good reason. It requires no mathematics, no language, and no prior experience. All it takes is patience, observation, and a willingness to think step by step. Regular practice sharpens working memory, trains attention to detail, and builds the kind of systematic thinking that carries over into everyday problem-solving. Every puzzle you complete is a small victory for your brain.</p>
+        <h2 class="sec-title">Puzzles &amp; The Brain</h2>
+        <p class="brain-text">Good brain training is not one exercise repeated — it is variety with intent. Sudoku sharpens working memory and the kind of systematic, step-by-step reasoning that carries over into everyday problem-solving. Word search trains something different: sustained visual attention, pattern recognition, and the quiet satisfaction of vocabulary at work. Neither requires mathematics or prior experience — only patience and observation. That is why the studio keeps growing: different puzzles reach different parts of the mind, and every one you complete is a small victory for your brain.</p>
         <blockquote class="brain-quote">
           "Every cell you fill is a clue for the next one. Sudoku rewards patience and attention — never luck."
           <span class="brain-quote-attr">— The Complete Sudoku Strategy Guide, Crestiora Books</span>
@@ -792,7 +866,7 @@
       <div class="brand-inner fade-in">
         <span class="eyebrow">Physical Books</span>
         <h2 class="sec-title">Crestiora Books</h2>
-        <p class="brand-sub">Prefer pencil and paper? Our printed sudoku books are available on Amazon — same three difficulty levels, professionally typeset, and perfect for travel, home, or as a gift.</p>
+        <p class="brand-sub">Prefer pencil and paper? Our printed puzzle books are available on Amazon — starting with sudoku in three difficulty levels, professionally typeset, and perfect for travel, home, or as a gift.</p>
         <a href="https://www.amazon.com/s?k=crestiora+books&i=stripbooks-intl-ship" class="btn-primary" target="_blank" rel="noopener">View on Amazon</a>
       </div>
     </div>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!--
+    SEO — this page carries the "word search" keyword, the way
+    play.html carries "sudoku" and index.html carries "brain training".
+  -->
+  <title>Play Word Search Online — Five Free Themed Puzzles | Crestiora Books</title>
+  <meta name="description" content="Free online word search from Crestiora Books — five themes from garden to car brands, ten hidden words each. Colored finds, gentle hints, endless new grids. No ads.">
+  <link rel="canonical" href="https://crestiorabooks.com/wordsearch.html">
+  <meta name="theme-color" content="#1B2733">
+
+  <!-- Favicons — Thought Ripples mark (same files as the rest of the site) -->
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <!-- Open Graph + Twitter — how the page looks when shared -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Crestiora Books">
+  <meta property="og:title" content="Play Word Search Online — Five Free Themed Puzzles">
+  <meta property="og:description" content="Five themes, ten hidden words each. Colored finds, gentle hints, endless new grids. Brain training worth keeping, designed by educators.">
+  <meta property="og:url" content="https://crestiorabooks.com/wordsearch.html">
+  <meta property="og:image" content="https://crestiorabooks.com/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!--
+    FONTS — Playfair Display (display) + Inter (body), loaded async
+    so text renders immediately with fallbacks (same pattern as index).
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;500;600;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+
+  <!-- STRUCTURED DATA (JSON-LD) — machine-readable page description -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": "https://crestiorabooks.com/wordsearch.html#webpage",
+    "url": "https://crestiorabooks.com/wordsearch.html",
+    "name": "Play Word Search Online — Five Free Themed Puzzles | Crestiora Books",
+    "description": "Free online word search with five themes — garden, animals, sports, nature, and car brands — each hiding ten words across, down, diagonally, and in reverse. Colored finds, hints, and endless new grids. No ads.",
+    "isPartOf": { "@id": "https://crestiorabooks.com/#website" },
+    "about": { "@id": "https://crestiorabooks.com/#organization" }
+  }
+  </script>
+
+<style>
+  /* ============================================================
+     CRESTIORA BRAND TOKENS — dark game-page variant.
+     Matches play.html: navy background, cream text, brass accent.
+     Brass appears only at "moments of insight": the logo dot,
+     the flash when a word is found, and the hint pulse.
+     ============================================================ */
+  :root {
+    --bg:         #1B2733;                    /* brand navy — page background */
+    --navy:       #2E4057;                    /* slate — panels, tab bar */
+    --panel:      rgba(46, 64, 87, 0.50);     /* slate panel, as in play.html */
+    --brass:      #C8A86B;
+    --brass-soft: #E2C994;
+    --cream:      #F6F3EE;
+    --muted:      rgba(246, 243, 238, 0.55);
+    --cell-bg:    rgba(246, 243, 238, 0.07);  /* unfound letter cell */
+    --cell-sel:   rgba(246, 243, 238, 0.24);  /* drag-selection in progress */
+    /* Cell size: fills the viewport minus wrap padding (32px), card padding
+       (40px) and the 11 grid gaps (44px), capped at 40px on large screens. */
+    --cell: clamp(18px, calc((100vw - 116px) / 12), 40px);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* Visually hidden but readable by search engines & screen readers */
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--cream);
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* ---------- Site header: centered lockup + thin brass rule ---------- */
+  .site-header {
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--brass);
+  }
+  .site-header .mark { width: 28px; height: 28px; }
+  .site-header .wordmark {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--brass-soft);
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- Page tabs (same component as play.html) ---------- */
+  .tab-bar {
+    display: flex;
+    background: var(--navy);
+    border-bottom: 1px solid rgba(246,243,238,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 99;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 14px 12px;
+    text-align: center;
+    text-decoration: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--muted);
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .tab-btn.active {
+    color: var(--brass);
+    border-bottom-color: var(--brass);
+  }
+  @media (max-width: 480px) {
+    .tab-btn { font-size: 0.78rem; padding: 12px 6px; }
+  }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 28px 16px 48px; }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ---------- The puzzle card ---------- */
+  .card {
+    background: var(--panel);
+    border: 1px solid rgba(246, 243, 238, 0.08);
+    border-radius: 18px;
+    padding: clamp(20px, 4vw, 36px);
+  }
+  .card .eyebrow { display: block; margin-bottom: 8px; }
+
+  .puzzle-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 900;
+    font-size: clamp(28px, 5vw, 40px);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--cream);
+    margin-bottom: 10px;
+  }
+
+  .intro {
+    max-width: 640px;
+    margin-bottom: 20px;
+    color: rgba(246, 243, 238, 0.85);
+  }
+
+  /* ---------- Theme picker chips ---------- */
+  .themes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 26px;
+  }
+  .theme-btn {
+    font: 600 13px 'Inter', sans-serif;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+    background: transparent;
+    border: 1.5px solid rgba(246, 243, 238, 0.25);
+    border-radius: 999px;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .theme-btn:hover { color: var(--cream); border-color: rgba(246, 243, 238, 0.5); }
+  .theme-btn.active {
+    color: var(--brass-soft);
+    border-color: var(--brass);
+  }
+
+  /* ---------- Board + word list side by side (stacks on mobile) ---------- */
+  .game {
+    display: flex;
+    gap: 36px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(12, var(--cell));
+    gap: 4px;
+    touch-action: none;   /* lets us handle finger-drag ourselves */
+    user-select: none;
+  }
+
+  .cell {
+    width: var(--cell);
+    height: var(--cell);
+    display: grid;
+    place-items: center;
+    background: var(--cell-bg);
+    border-radius: 6px;   /* rounded forms — sharp corners only for grid lines */
+    font-weight: 600;
+    font-size: calc(var(--cell) * 0.42);
+    color: var(--cream);
+    cursor: pointer;
+  }
+
+  .cell.sel { background: var(--cell-sel); }
+
+  /* A found word keeps its own color: a soft tint + a 2px inner ring, set
+     per word via the --wc variable. Letters stay cream — text never wears
+     the series color, so every found word remains readable. */
+  .cell.found {
+    background: color-mix(in srgb, var(--wc) 30%, transparent);
+    box-shadow: inset 0 0 0 2px var(--wc);
+  }
+  /* The instant of finding still flashes brass — the moment of insight —
+     before the cell settles into its word color. */
+  .cell.justfound { animation: glow 0.9s ease-out; }
+  @keyframes glow {
+    0%   { box-shadow: inset 0 0 0 2px var(--wc), 0 0 0 rgba(200, 168, 107, 0); }
+    35%  { box-shadow: inset 0 0 0 2px var(--wc), 0 0 18px rgba(200, 168, 107, 0.65); }
+    100% { box-shadow: inset 0 0 0 2px var(--wc), 0 0 0 rgba(200, 168, 107, 0); }
+  }
+
+  /* Hint: tapping a word in the list pulses its cells twice in brass-soft. */
+  .cell.hintpulse { animation: hintpulse 1.8s ease-in-out; }
+  @keyframes hintpulse {
+    0%, 100% { box-shadow: none; }
+    20%, 60% { box-shadow: inset 0 0 0 2px var(--brass-soft);
+               background: rgba(226, 201, 148, 0.22); }
+    40%, 80% { box-shadow: inset 0 0 0 1px rgba(226, 201, 148, 0.35); }
+  }
+
+  /* ---------- Word list (each word is tappable = hint) ---------- */
+  .sidebar { min-width: 200px; flex: 1; }
+  .sidebar .eyebrow { margin: 0 0 12px; display: block; }
+  .words { list-style: none; }
+  .words li {
+    font-weight: 500;
+    font-size: 15px;
+    color: rgba(246, 243, 238, 0.82);
+    padding: 4px 0;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+  }
+  .words li:hover { color: var(--brass-soft); }
+  .words li.done {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-thickness: 1.5px;
+    cursor: default;
+  }
+  .words li.done:hover { color: var(--muted); }
+  /* Color swatch: transparent until the word is found, then takes its color. */
+  .words .dot {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    margin-right: 9px;
+    background: transparent;
+  }
+  .hinttext { font-size: 13px; color: var(--muted); margin-top: 12px; max-width: 220px; }
+
+  /* Calm outline button — cream on navy, brass on hover */
+  .btn {
+    margin-top: 20px;
+    font: 600 13px 'Inter', sans-serif;
+    letter-spacing: 0.04em;
+    color: var(--cream);
+    background: transparent;
+    border: 1.5px solid rgba(246, 243, 238, 0.35);
+    border-radius: 999px;
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .btn:hover { border-color: var(--brass); color: var(--brass-soft); }
+
+  /* ---------- Completion panel (hidden until all words are found) ---------- */
+  .complete {
+    display: none;
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid rgba(246, 243, 238, 0.14);
+    max-width: 640px;
+  }
+  .complete.show { display: block; }
+  .complete h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--cream);
+    margin-bottom: 8px;
+  }
+  .complete p { color: rgba(246, 243, 238, 0.85); }
+  .complete .plug { color: var(--muted); font-size: 14px; margin-top: 10px; }
+  .complete .plug a {
+    color: var(--brass-soft);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* ---------- Footer — mirrors index.html ---------- */
+  footer {
+    text-align: center;
+    padding: 48px 24px 32px;
+    border-top: 1px solid rgba(246, 243, 238, 0.08);
+    margin-top: 24px;
+    color: rgba(246, 243, 238, 0.4);
+  }
+  .footer-tagline {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--brass-soft);
+    margin-bottom: 20px;
+  }
+  .footer-meta {
+    font-size: 0.82rem;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<!-- SEO heading — visually hidden; the visible title is the puzzle theme -->
+<h1 class="sr-only">Play Word Search Online — Free Brain Training from Crestiora Books</h1>
+
+<!-- ============ SITE HEADER (same lockup as the rest of the site) ============ -->
+<header class="site-header">
+  <svg class="mark" viewBox="0 0 64 64" aria-label="Crestiora mark">
+    <circle cx="32" cy="32" r="28" fill="none" stroke="#E2C994" stroke-width="2.5" opacity="0.25"/>
+    <circle cx="32" cy="32" r="20" fill="none" stroke="#E2C994" stroke-width="2.5" opacity="0.55"/>
+    <circle cx="32" cy="32" r="12" fill="none" stroke="#E2C994" stroke-width="2.5" opacity="0.85"/>
+    <circle cx="32" cy="32" r="5" fill="#C8A86B"/>
+  </svg>
+  <div class="wordmark">Crestiora Books</div>
+</header>
+
+<!-- ============ PAGE TABS (Home | Sudoku | Word Search) ============ -->
+<div class="tab-bar">
+  <a href="index.html" class="tab-btn">🏠 Home</a>
+  <a href="play.html" class="tab-btn">▶ Sudoku</a>
+  <a href="wordsearch.html" class="tab-btn active" aria-current="page">🔍 Word Search</a>
+</div>
+
+<div class="wrap">
+
+  <!-- ============ THE PUZZLE ============ -->
+  <div class="card">
+    <span class="eyebrow">Word Search</span>
+    <h2 class="puzzle-title" id="puzzleTitle">In the Garden</h2>
+    <p class="intro">
+      <span id="introLead">Ten garden words are hidden below</span> — across,
+      down, and diagonally, a few in reverse. Press and drag across the letters
+      when you spot one. The training is in the scanning: your eye learns to
+      hold a shape while it searches.
+    </p>
+
+    <!-- Theme picker — each theme swaps in its own ten words -->
+    <div class="themes" role="group" aria-label="Choose a theme">
+      <button class="theme-btn active" data-theme="garden">Garden</button>
+      <button class="theme-btn" data-theme="animals">Animals</button>
+      <button class="theme-btn" data-theme="sports">Sports</button>
+      <button class="theme-btn" data-theme="nature">Nature</button>
+      <button class="theme-btn" data-theme="cars">Car Brands</button>
+    </div>
+
+    <div class="game">
+      <div class="board" id="board"></div>
+
+      <div class="sidebar">
+        <span class="eyebrow">Find ten words</span>
+        <ul class="words" id="wordlist"></ul>
+        <p class="hinttext">Stuck? Tap a word for a brief pointer.</p>
+        <button class="btn" id="newgrid">New grid</button>
+      </div>
+    </div>
+
+    <!-- Shown when the last word is found. Quiet voice, no confetti. -->
+    <div class="complete" id="complete">
+      <h2>All ten found.</h2>
+      <p id="completeMsg"></p>
+      <p class="plug">Prefer pencil and paper? Crestiora's printed puzzle books are
+        <a href="https://www.amazon.com/s?k=crestiora+books&i=stripbooks-intl-ship" target="_blank" rel="noopener">on Amazon</a>.</p>
+    </div>
+  </div>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <p class="footer-tagline">"Brain training worth keeping."</p>
+    <p class="footer-meta">© 2026 Crestiora Books — All rights reserved</p>
+  </footer>
+</div>
+
+<script>
+/* ================================================================
+   1. PUZZLE GENERATOR
+   The same logic that places words here could generate print-ready
+   book pages — one engine, two products.
+   ================================================================ */
+
+/* Five themes, ten words each. Words are 6–9 letters so every one fits
+   the 12×12 grid in all eight directions. */
+const THEMES = {
+  garden: {
+    label: "Garden",
+    title: "In the Garden",
+    intro: "Ten garden words are hidden below",
+    words: ["SUNFLOWER", "LAVENDER", "SEEDLING", "WATERING",
+            "TRELLIS", "COMPOST", "BLOSSOM", "PRUNING", "ROSEBUD", "MEADOW"]
+  },
+  animals: {
+    label: "Animals",
+    title: "Animal Kingdom",
+    intro: "Ten animals are hiding below",
+    words: ["ELEPHANT", "GIRAFFE", "DOLPHIN", "HEDGEHOG",
+            "PENGUIN", "LEOPARD", "SQUIRREL", "OSTRICH", "BADGER", "TORTOISE"]
+  },
+  sports: {
+    label: "Sports",
+    title: "On the Field",
+    intro: "Ten sports are hidden below",
+    words: ["FOOTBALL", "CYCLING", "ARCHERY", "SWIMMING",
+            "HANDBALL", "JAVELIN", "ROWING", "TENNIS", "MARATHON", "CURLING"]
+  },
+  nature: {
+    label: "Nature",
+    title: "Forces of Nature",
+    intro: "Ten words from the wild are hidden below",
+    words: ["WATERFALL", "GLACIER", "VOLCANO", "RAINBOW",
+            "THUNDER", "FOREST", "CANYON", "BREEZE", "HORIZON", "MOUNTAIN"]
+  },
+  cars: {
+    label: "Car Brands",
+    title: "On the Road",
+    intro: "Ten car makers are hidden below",
+    words: ["TOYOTA", "PORSCHE", "RENAULT", "FERRARI",
+            "PEUGEOT", "HYUNDAI", "BENTLEY", "SUBARU", "CITROEN", "MERCEDES"]
+  }
+};
+const SIZE = 12;
+
+// Active theme — ?theme=animals deep-links straight to a theme.
+let themeKey = new URLSearchParams(location.search).get("theme");
+if (!THEMES[themeKey]) themeKey = "garden";
+let WORDS = THEMES[themeKey].words;
+
+// One color per word, validated for colorblind separation and contrast
+// against the navy surface (OKLCH band + CVD checks, dataviz method).
+// Assigned in ALPHABETICAL order so neighbors in the visible word list
+// are exactly the pairs the validation guarantees apart.
+const PALETTE = [
+  "#B78A35", "#5C80C0", "#C06A50", "#29A38B", "#C7524A",
+  "#3399C4", "#C96F86", "#A863A6", "#5E9E55", "#1B95B0"
+];
+let WORD_COLOR = {};
+function assignColors() {
+  WORD_COLOR = {};
+  [...WORDS].sort().forEach((w, i) => { WORD_COLOR[w] = PALETTE[i]; });
+}
+assignColors();
+
+// All eight reading directions: right, down, diagonals, and their reverses.
+const DIRS = [
+  [0, 1], [1, 0], [1, 1], [1, -1],
+  [0, -1], [-1, 0], [-1, -1], [-1, 1]
+];
+
+// Each word gets a PRE-ASSIGNED direction, with all eight directions
+// guaranteed to appear. Without this, random placement drifts toward
+// horizontal/vertical as the grid fills up, and the puzzle quietly stops
+// matching its own instructions ("across, down, and diagonally").
+function directionMix(count) {
+  const dirs = [...DIRS];                                   // all 8, once each
+  while (dirs.length < count)                               // fill remaining slots
+    dirs.push(DIRS[Math.floor(Math.random() * DIRS.length)]);
+  for (let i = dirs.length - 1; i > 0; i--) {               // shuffle
+    const j = Math.floor(Math.random() * (i + 1));
+    [dirs[i], dirs[j]] = [dirs[j], dirs[i]];
+  }
+  return dirs;
+}
+
+// Find a spot for one word in ONE given direction. We enumerate every valid
+// start (bounds ok + no letter conflicts; overlaps on matching letters are
+// allowed — that's what makes it a puzzle) and pick one at random.
+function findSpot(grid, word, dir) {
+  const [dr, dc] = dir;
+  const starts = [];
+  for (let r0 = 0; r0 < SIZE; r0++) {
+    for (let c0 = 0; c0 < SIZE; c0++) {
+      const rEnd = r0 + dr * (word.length - 1);
+      const cEnd = c0 + dc * (word.length - 1);
+      if (rEnd < 0 || rEnd >= SIZE || cEnd < 0 || cEnd >= SIZE) continue;
+
+      let fits = true;
+      for (let i = 0; i < word.length; i++) {
+        const existing = grid[r0 + dr * i][c0 + dc * i];
+        if (existing !== null && existing !== word[i]) { fits = false; break; }
+      }
+      if (fits) starts.push({ r: r0, c: c0 });
+    }
+  }
+  if (!starts.length) return null; // no room — the whole grid gets retried
+  const s = starts[Math.floor(Math.random() * starts.length)];
+  return { r: s.r, c: s.c, dr, dc };
+}
+
+// Build a complete grid. If any word refuses to fit, start over
+// (guarantees every puzzle is valid — accuracy beats aesthetics).
+function generate() {
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+    const placements = [];
+    // Longest words first: they are the hardest to place.
+    const words = [...WORDS].sort((a, b) => b.length - a.length);
+    const dirs = directionMix(words.length);
+    let ok = true;
+
+    for (let w = 0; w < words.length; w++) {
+      const word = words[w];
+      const spot = findSpot(grid, word, dirs[w]);
+      if (!spot) { ok = false; break; }
+      for (let i = 0; i < word.length; i++) {
+        grid[spot.r + spot.dr * i][spot.c + spot.dc * i] = word[i];
+      }
+      placements.push({ word, ...spot });
+    }
+    if (!ok) continue;
+
+    // Fill the gaps with random letters.
+    const ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    for (let r = 0; r < SIZE; r++)
+      for (let c = 0; c < SIZE; c++)
+        if (grid[r][c] === null)
+          grid[r][c] = ABC[Math.floor(Math.random() * 26)];
+
+    return { grid, placements };
+  }
+  throw new Error("Could not generate a valid grid");
+}
+
+/* ================================================================
+   2. GAME STATE + RENDERING
+   ================================================================ */
+
+const boardEl = document.getElementById("board");
+const listEl  = document.getElementById("wordlist");
+const doneEl  = document.getElementById("complete");
+
+let puzzle, found, startTime;
+
+function newGame() {
+  puzzle = generate();
+  found = new Set();
+  startTime = null;
+  doneEl.classList.remove("show");
+
+  // Board: one div per letter, tagged with its row/column.
+  boardEl.innerHTML = "";
+  for (let r = 0; r < SIZE; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      const cell = document.createElement("div");
+      cell.className = "cell";
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.textContent = puzzle.grid[r][c];
+      boardEl.appendChild(cell);
+    }
+  }
+
+  // Word list, alphabetical so players scan calmly rather than in placement
+  // order. Each row gets a (still invisible) color dot that fills in on find.
+  listEl.innerHTML = "";
+  [...WORDS].sort().forEach(w => {
+    const li = document.createElement("li");
+    li.dataset.word = w;
+    const dot = document.createElement("span");
+    dot.className = "dot";
+    li.append(dot, w);
+    listEl.appendChild(li);
+  });
+}
+
+const cellAt = (r, c) => boardEl.children[r * SIZE + c];
+
+/* ================================================================
+   3. DRAG-TO-SELECT
+   Pointer events cover mouse, finger, and stylus in one API.
+   A selection is only valid along a straight line (8 directions),
+   so we "snap" the path from the start cell to wherever you are.
+   ================================================================ */
+
+let selecting = false;
+let startCell = null;
+let path = [];
+
+function pathBetween(a, b) {
+  const dr = b.r - a.r, dc = b.c - a.c;
+  const straight = dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc);
+  if (!straight) return null;
+  const steps = Math.max(Math.abs(dr), Math.abs(dc));
+  const sr = Math.sign(dr), sc = Math.sign(dc);
+  const cells = [];
+  for (let i = 0; i <= steps; i++) cells.push({ r: a.r + sr * i, c: a.c + sc * i });
+  return cells;
+}
+
+function paintSelection() {
+  boardEl.querySelectorAll(".sel").forEach(el => el.classList.remove("sel"));
+  path.forEach(p => cellAt(p.r, p.c).classList.add("sel"));
+}
+
+boardEl.addEventListener("pointerdown", e => {
+  const cell = e.target.closest(".cell");
+  if (!cell) return;
+  if (!startTime) startTime = Date.now();   // timer starts on first touch
+  selecting = true;
+  startCell = { r: +cell.dataset.r, c: +cell.dataset.c };
+  path = [startCell];
+  paintSelection();
+});
+
+window.addEventListener("pointermove", e => {
+  if (!selecting) return;
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  const cell = el && el.closest ? el.closest(".cell") : null;
+  if (!cell) return;
+  const p = pathBetween(startCell, { r: +cell.dataset.r, c: +cell.dataset.c });
+  if (p) { path = p; paintSelection(); }
+});
+
+window.addEventListener("pointerup", () => {
+  if (!selecting) return;
+  selecting = false;
+
+  const letters = path.map(p => puzzle.grid[p.r][p.c]).join("");
+  const reversed = [...letters].reverse().join("");
+  const match = WORDS.find(w => !found.has(w) && (w === letters || w === reversed));
+
+  boardEl.querySelectorAll(".sel").forEach(el => el.classList.remove("sel"));
+  if (match) markFound(match, path);
+  path = [];
+});
+
+/* ================================================================
+   4. FOUND WORDS, HINTS + COMPLETION
+   ================================================================ */
+
+function markFound(word, cells) {
+  found.add(word);
+  const color = WORD_COLOR[word];
+  cells.forEach(p => {
+    const el = cellAt(p.r, p.c);
+    // First word to claim a cell keeps its color (cells can be shared).
+    if (!el.style.getPropertyValue("--wc")) el.style.setProperty("--wc", color);
+    el.classList.add("found", "justfound");
+    // Remove the glow class after the animation so it can replay on overlaps.
+    setTimeout(() => el.classList.remove("justfound"), 950);
+  });
+
+  const li = listEl.querySelector(`[data-word="${word}"]`);
+  li.classList.add("done");
+  li.querySelector(".dot").style.background = color;
+
+  if (found.size === WORDS.length) {
+    const secs = Math.round((Date.now() - startTime) / 1000);
+    const time = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, "0")}`;
+    document.getElementById("completeMsg").textContent =
+      `Ten for ten in ${time}. Diagonals usually surface last — noticing where you slowed down is part of the training.`;
+    doneEl.classList.add("show");
+  }
+}
+
+// Hint: tap an unfound word in the list and its cells pulse briefly.
+// The word is not marked as found — you still trace it yourself.
+listEl.addEventListener("click", e => {
+  const li = e.target.closest("li");
+  if (!li || li.classList.contains("done")) return;
+  const p = puzzle.placements.find(x => x.word === li.dataset.word);
+  for (let i = 0; i < p.word.length; i++) {
+    const el = cellAt(p.r + p.dr * i, p.c + p.dc * i);
+    el.classList.remove("hintpulse");
+    void el.offsetWidth;                    // restart the animation if re-tapped
+    el.classList.add("hintpulse");
+    setTimeout(() => el.classList.remove("hintpulse"), 1900);
+  }
+});
+
+/* ================================================================
+   5. THEME SWITCHING
+   ================================================================ */
+
+function setTheme(key) {
+  themeKey = key;
+  const theme = THEMES[key];
+  WORDS = theme.words;
+  assignColors();
+
+  // Update the visible copy and the active chip.
+  document.getElementById("puzzleTitle").textContent = theme.title;
+  document.getElementById("introLead").textContent = theme.intro;
+  document.querySelectorAll(".theme-btn").forEach(btn =>
+    btn.classList.toggle("active", btn.dataset.theme === key));
+
+  // Keep the URL shareable (?theme=animals); the default stays clean.
+  const url = key === "garden" ? location.pathname : `?theme=${key}`;
+  history.replaceState(null, "", url);
+
+  newGame();
+}
+
+document.querySelectorAll(".theme-btn").forEach(btn =>
+  btn.addEventListener("click", () => setTheme(btn.dataset.theme)));
+
+document.getElementById("newgrid").addEventListener("click", newGame);
+setTheme(themeKey);
+</script>
+</body>
+</html>
