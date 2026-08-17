@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Detective Kit — The Curious Museum Mysteries</title>
+
+<!--
+  TYPSNITT — Playfair Display (rubrik) och Inter (brödtext), inlästa på exakt
+  samma sätt som på resten av sajten (se index.html, huvudet). Länken laddas
+  med media="print" och byts till media="all" så snart typsnittet är klart
+  (onload) — då väntar inte texten på typsnittet innan sidan visas första
+  gången. noscript är en reserv om besökarens webbläsare har JavaScript
+  avstängt.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+
+<style>
+  :root { --navy:#1B2733; --brass:#C8A86B; --cream:#F6F3EE; --off:#E8E4DC;
+          --ink:#1A1A1F; --ink-light:#6B7280; }
+  body { margin:0; background:var(--off); color:var(--ink);
+         font-family:Inter,system-ui,sans-serif; line-height:1.6; }
+  main { max-width:40rem; margin:0 auto; padding:32px 24px 64px; }
+  h1 { font-family:"Playfair Display",Georgia,serif; color:var(--navy);
+       font-weight:700; font-size:clamp(1.8rem,5vw,2.6rem); line-height:1.15; margin:0 0 .4em; }
+  h2 { font-family:"Playfair Display",Georgia,serif; color:var(--navy);
+       font-size:1.3rem; margin:2em 0 .4em; }
+  .card { background:var(--cream); border-radius:14px; padding:24px; margin:24px 0; }
+  /* .btn är den riktiga nedladdningsknappen (navy med brass-kant) — sparad
+     här så att plan 2 kan återanvända klassen rakt av när pdf:en finns. */
+  .btn { display:inline-block; background:var(--navy); color:var(--cream);
+         padding:14px 28px; border-radius:10px; text-decoration:none;
+         font-weight:600; border-bottom:3px solid var(--brass); }
+  /* .btn-pending är INTE en knapp — kursiv text utan knapplåda så att ingen
+     tror att den går att klicka på innan pdf:en finns. */
+  .btn-pending { margin:0; font-style:italic; color:var(--navy); }
+  ul { padding-left:1.2em; }
+  a { color:var(--navy); text-decoration:underline; text-decoration-color:var(--brass);
+      text-underline-offset:3px; }
+  .also { color:var(--ink-light); font-size:.95rem; margin-top:3em; }
+</style>
+</head>
+<body>
+<main>
+  <h1>The Detective Kit</h1>
+  <p>Everything here is free. Print only the pages you want — the case sheets
+     work in black and white.</p>
+
+  <!-- NEDLADDNINGSKNAPPEN KOMMER HÄR. Kitets pdf byggs i nästa steg (plan 2);
+       fram tills den finns ska raden nedan INTE vara en länk — en knapp som
+       leder till en död sida (404) är värre än en rad som säger sanningen.
+       När pdf:en finns, byt ut <p class="btn-pending"> mot till exempel:
+       <a class="btn" href="detektivkit.pdf">Download the kit (PDF)</a> -->
+  <div class="card">
+    <p class="btn-pending">The detective kit is being finished and will land here shortly.</p>
+  </div>
+
+  <h2>What is inside</h2>
+  <!-- Sidnummer saknas här medvetet. Kitets elva sidor finns hittills bara i
+       planeringen — den riktiga pdf:en byggs i plan 2, och en tryckt
+       sifferlista som inte stämmer med den färdiga filen är värre än ingen
+       sifferlista alls. Plan 2 lägger till sidnummer när pagineringen är
+       verklig. -->
+  <ul>
+    <li>A case grid for building your own mystery</li>
+    <li>Clue cards and spare detective notes</li>
+    <li>A story about Nova, Milo and Pip</li>
+    <li>Posters, a detective card and a certificate</li>
+  </ul>
+
+  <h2>Nova, Milo and Pip</h2>
+  <p>Nova and Milo solve the cases in this book. Pip is Nova's dog. He is small
+     and white and so fluffy that he looks like a cloud with eyes.</p>
+
+  <!-- Diskret rad om studions övriga böcker (spec-punkt 5). Samma tonläge som
+       index.html rad 869-870, fast kortare eftersom den ska vara diskret här.
+       Ingen koppling till recensionssidan i texten — Amazons regler tillåter
+       aldrig att en gåva och en recension nämns i samma andetag. -->
+  <p class="also">Looking for more brain training? Crestiora Books publishes
+     puzzle books too, available on
+     <a href="https://www.amazon.com/s?k=crestiora+books&amp;i=stripbooks-intl-ship">Amazon</a>.</p>
+</main>
+</body>
+</html>

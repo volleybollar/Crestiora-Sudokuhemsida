@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leave a review — Crestiora Books</title>
+<!-- noindex: den här sidan omdirigerar och har inget eget innehåll värt att
+     indexera i Google. Den ska bara nås via länken i den tryckta boken. -->
+<meta name="robots" content="noindex">
+
+<!--
+  TYPSNITT — Playfair Display (rubrik) och Inter (brödtext), inlästa på exakt
+  samma sätt som på resten av sajten (se index.html, huvudet). Länken laddas
+  med media="print" och byts till media="all" så snart typsnittet är klart
+  (onload) — då väntar inte texten på typsnittet innan sidan visas första
+  gången. noscript är en reserv om besökarens webbläsare har JavaScript
+  avstängt.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Inter:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+
+<!-- OMDIRIGERINGEN LIGGER HÄR, INTE I BOKEN. Boken trycker den här adressen;
+     när boken är publicerad byts URL:en på raden nedan mot Amazons
+     recensionslänk och sidan pushas. Ingen ny inlaga, ingen ny KDP-uppladdning,
+     inga tryckta exemplar med en kod som leder fel.
+     Ta bort kommenteringen och fyll i länken vid publicering: -->
+<!-- <meta http-equiv="refresh" content="0; url=AMAZON_REVIEW_URL"> -->
+<style>
+  body { margin:0; background:#E8E4DC; color:#1A1A1F;
+         font-family:Inter,system-ui,sans-serif; line-height:1.6;
+         display:grid; place-items:center; min-height:100vh; padding:24px; }
+  main { max-width:38rem; text-align:center; }
+  h1 { font-family:"Playfair Display",Georgia,serif; color:#1B2733;
+       font-weight:700; font-size:clamp(1.6rem,4vw,2.2rem); margin:0 0 .5em; }
+  a { color:#1B2733; text-decoration:underline; text-decoration-color:#C8A86B;
+      text-underline-offset:3px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Thank you for reading</h1>
+  <p>The Curious Museum Mysteries is on its way to stores. When it arrives, this
+     page will take you straight to where you can leave an honest review.</p>
+  <p><a href="/museum">Meanwhile, here is the free detective kit.</a></p>
+</main>
+</body>
+</html>
