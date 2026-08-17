@@ -12,4 +12,19 @@
     <loc>https://crestiorabooks.com/wordsearch.html</loc>
     <lastmod>2026-07-07</lastmod>
   </url>
+  <!-- Nedladdningssidan för detektivkitet. Adressen skrivs MED avslutande
+       snedstreck: sidan är museum/index.html, och en förfrågan utan snedstreck
+       omdirigeras (301) till den här formen — en sitemap ska peka på den URL
+       servern faktiskt lämnar ut, inte på en omdirigering. Boken trycker
+       formen utan snedstreck med flit: den är kortare att läsa av och ger en
+       enklare QR-kod. Båda leder till samma sida.
+
+       /museum-review SAKNAS HÄR MED AVSIKT: den sidan bär
+       <meta name="robots" content="noindex"> eftersom den är en ren
+       omdirigering utan eget innehåll. Att lista en noindex-sida i sitemapen
+       vore att be Google om två motstridiga saker. Lägg alltså INTE till den. -->
+  <url>
+    <loc>https://crestiorabooks.com/museum/</loc>
+    <lastmod>2026-08-17</lastmod>
+  </url>
 </urlset>

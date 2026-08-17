@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Leave a review — Crestiora Books</title>
+<!-- Titeln speglar rubriken, INTE "Leave a review": under hålltiden går det
+     inte att lämna en recension på den här sidan. Se publiceringsstegen längre
+     ner — steg 3 byter tillbaka titeln samma dag löftet blir sant. -->
+<title>Thank you for reading — Crestiora Books</title>
 <!-- noindex: den här sidan omdirigerar och har inget eget innehåll värt att
      indexera i Google. Den ska bara nås via länken i den tryckta boken. -->
 <meta name="robots" content="noindex">
@@ -26,7 +29,23 @@
      när boken är publicerad byts URL:en på raden nedan mot Amazons
      recensionslänk och sidan pushas. Ingen ny inlaga, ingen ny KDP-uppladdning,
      inga tryckta exemplar med en kod som leder fel.
-     Ta bort kommenteringen och fyll i länken vid publicering: -->
+
+     VID PUBLICERING — TRE STEG, INTE ETT:
+     1) Ta bort kommenteringen på meta-raden nedan och fyll i recensionslänken.
+     2) LÄGG TILL EN SYNLIG LÄNK till samma adress i <main> nedan, och skriv om
+        stycket så att det inte längre säger "on its way to stores". En
+        meta-refresh är inte en garanti: den kan vara avstängd i webbläsaren, i
+        en app-inbäddad vy eller av en integritetsinställning, och läsaren
+        landar då på en sida som påstår att boken inte finns att köpa medan
+        koden hen just skannade fanns tryckt i boken. Refreshen är alltså
+        bekvämligheten; den synliga länken är det som faktiskt måste fungera.
+        Samma resonemang som specens §3 för sajten i stort ("plus en synlig
+        länk som fungerar utan JavaScript").
+     3) Byt <title> tillbaka till "Leave a review — Crestiora Books". Titeln
+        står nu på "Thank you for reading", samma som rubriken, eftersom det
+        under hålltiden INTE går att lämna en recension — en flik som lovar en
+        handling sidan inte kan utföra är en liten lögn i webbläsarhistoriken.
+        Efter steg 1 och 2 är löftet sant igen. -->
 <!-- <meta http-equiv="refresh" content="0; url=AMAZON_REVIEW_URL"> -->
 <style>
   body { margin:0; background:#E8E4DC; color:#1A1A1F;
