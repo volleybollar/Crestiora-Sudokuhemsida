@@ -30,18 +30,16 @@
   h2 { font-family:"Playfair Display",Georgia,serif; color:var(--navy);
        font-size:1.3rem; margin:2em 0 .4em; }
   .card { background:var(--cream); border-radius:14px; padding:24px; margin:24px 0; }
-  /* .btn är den riktiga nedladdningsknappen (navy med brass-kant) — sparad
-     här så att plan 2 kan återanvända klassen rakt av när pdf:en finns. */
   .btn { display:inline-block; background:var(--navy); color:var(--cream);
          padding:14px 28px; border-radius:10px; text-decoration:none;
          font-weight:600; border-bottom:3px solid var(--brass); }
-  /* .btn-pending är INTE en knapp — kursiv text utan knapplåda så att ingen
-     tror att den går att klicka på innan pdf:en finns. */
-  .btn-pending { margin:0; font-style:italic; color:var(--navy); }
+  .filesize { margin:.8em 0 0; color:var(--ink-light); font-size:.9rem; }
   ul { padding-left:1.2em; }
   a { color:var(--navy); text-decoration:underline; text-decoration-color:var(--brass);
       text-underline-offset:3px; }
   .also { color:var(--ink-light); font-size:.95rem; margin-top:3em; }
+  .posters { display:flex; gap:16px; flex-wrap:wrap; margin:1em 0; }
+  .posters img { max-width:100%; width:220px; height:auto; border-radius:8px; }
 </style>
 </head>
 <body>
@@ -50,36 +48,26 @@
   <p>Everything here is free. Print only the pages you want — the case sheets
      work in black and white.</p>
 
-  <!-- NEDLADDNINGSKNAPPEN KOMMER HÄR. Kitets pdf byggs i nästa steg (plan 2);
-       fram tills den finns ska raden nedan INTE vara en länk — en knapp som
-       leder till en död sida (404) är värre än en rad som säger sanningen.
-       När pdf:en finns, byt ut <p class="btn-pending"> mot till exempel:
-       <a class="btn" href="detektivkit.pdf">Download the kit (PDF)</a> -->
   <div class="card">
-    <p class="btn-pending">The detective kit is being finished and will land here shortly.</p>
+    <a class="btn" href="detektivkit.pdf">Download the kit (PDF)</a>
+    <p class="filesize">About 18 MB — on mobile data, you may want to wait for wifi.</p>
   </div>
 
   <h2>What is inside</h2>
-  <!-- Sidnummer saknas här medvetet. Kitets elva sidor finns hittills bara i
-       planeringen — den riktiga pdf:en byggs i plan 2, och en tryckt
-       sifferlista som inte stämmer med den färdiga filen är värre än ingen
-       sifferlista alls. Plan 2 lägger till sidnummer när pagineringen är
-       verklig. -->
   <ul>
-    <li>A case grid for building your own mystery</li>
-    <li>Clue cards and spare detective notes</li>
-    <li>A story about Nova, Milo and Pip</li>
-    <li>Posters, a detective card and a certificate</li>
+    <li>A case grid for building your own mystery (page 7)</li>
+    <li>Clue cards and spare detective notes (pages 8&ndash;9)</li>
+    <li>A story about Nova, Milo and Pip (pages 2&ndash;3)</li>
+    <li>Posters, a detective card and a certificate (pages 4&ndash;6 and 12)</li>
   </ul>
 
   <h2>Nova, Milo and Pip</h2>
-  <!-- Affischerna som en förhandstitt saknas här medvetet, precis som
-       nedladdningsknappen och sidnumren ovan. Bildkonsten till dem finns
-       ännu inte — den ritas i plan 2 — så rent textinnehåll är rätt val nu.
-       Plan 2 lägger till en bildförhandsvisning av affischerna i det här
-       avsnittet. -->
   <p>Nova and Milo solve the cases in this book. Pip is Nova's dog. He is small
      and white and so fluffy that he looks like a cloud with eyes.</p>
+  <div class="posters">
+    <img src="nova.png" alt="Nova, standing detective character turnaround">
+    <img src="milo.png" alt="Milo, standing detective character turnaround">
+  </div>
 
   <!-- Diskret rad om studions övriga böcker (spec-punkt 5). Samma tonläge som
        index.html rad 869-870, fast kortare eftersom den ska vara diskret här.
