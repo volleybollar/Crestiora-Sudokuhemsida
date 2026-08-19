@@ -38,13 +38,15 @@
   a { color:var(--navy); text-decoration:underline; text-decoration-color:var(--brass);
       text-underline-offset:3px; }
   .also { color:var(--ink-light); font-size:.95rem; margin-top:3em; }
-  .posters { display:flex; gap:16px; flex-wrap:wrap; margin:1em 0; }
-  .posters img { max-width:100%; width:220px; height:auto; border-radius:8px; }
+  .posters { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:1em 0; max-width:460px; }
+  .posters img { width:100%; max-width:220px; height:auto; border-radius:8px; display:block; }
 </style>
 </head>
 <body>
 <main>
   <h1>The Detective Kit</h1>
+  <p>This kit is bonus material for The Curious Museum Mysteries, the picture
+     book featuring detectives Nova and Milo.</p>
   <p>Everything here is free. Print only the pages you want — the case sheets
      work in black and white.</p>
 
@@ -67,8 +69,8 @@
   <p>Nova and Milo solve the cases in this book. Pip is Nova's dog. He is small
      and white and so fluffy that he looks like a cloud with eyes.</p>
   <div class="posters">
-    <img src="nova.png" alt="Nova, standing detective character turnaround">
-    <img src="milo.png" alt="Milo, standing detective character turnaround">
+    <img src="nova.jpg" alt="Nova's poster page, a full-figure illustration set in a garden">
+    <img src="milo.jpg" alt="Milo's poster page, a full-figure illustration set in a garden">
   </div>
 
   <!-- Diskret rad om studions övriga böcker (spec-punkt 5). Samma tonläge som
